@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
+from tqdm import tqdm
 
 def initialize_model(model_name: str):
     """
@@ -17,9 +17,15 @@ def initialize_model(model_name: str):
     model = download_model(model_name)
 
     # Modify the final layer for binary classification (Pneumonia vs. Normal)
-    if model_name in ['resnet18', 'vgg16']:
-        num_features = model.fc.in_features if model_name == 'resnet18' else model.classifier[-1].in_features
-        model.fc = nn.Linear(num_features, 1) if model_name == 'resnet18' else nn.Linear(num_features, 1)
+    if model_name == 'resnet18':
+        # ResNet18
+        num_features = model.fc.in_features
+        model.fc = nn.Linear(num_features, 1)  # Update the fully connected layer for binary classification
+
+    elif model_name == 'vgg16':
+        # VGG16
+        num_features = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_features, 1)  # Update the last layer in classifier for binary classification
 
     return model
 
@@ -47,7 +53,7 @@ def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-3):
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
-        for images, labels in train_loader:
+        for images, labels in tqdm(train_loader):
             images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
             optimizer.zero_grad()
 

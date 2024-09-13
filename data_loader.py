@@ -2,9 +2,9 @@ import os
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+import numpy as np
 
-
-def load_data(data_dir: str, batch_size=32):
+def load_data(data_dir: str, total_train_samples,batch_size, labeled_unlabeled_split=(0.25,0.75)):
     """
     Loads and preprocesses the X-ray image dataset using PyTorch's DataLoader.
 
@@ -26,11 +26,15 @@ def load_data(data_dir: str, batch_size=32):
     test_dir = os.path.join(data_dir, 'test')
 
     train_dataset = datasets.ImageFolder(train_dir, transform=transform)
+    train_dataset = torch.utils.data.Subset(train_dataset, np.random.choice(len(train_dataset), total_train_samples, replace=False))
+    train_dataset_labeled, train_dataset_unlabeled = torch.utils.data.random_split(train_dataset, labeled_unlabeled_split)
+
     val_dataset = datasets.ImageFolder(val_dir, transform=transform)
     test_dataset = datasets.ImageFolder(test_dir, transform=transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader_labeled = DataLoader(train_dataset_labeled, batch_size=batch_size, shuffle=True)
+    train_loader_unlabeled = DataLoader(train_dataset_unlabeled, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_loader, val_loader, test_loader
+    return train_loader_labeled, train_loader_unlabeled, val_loader, test_loader

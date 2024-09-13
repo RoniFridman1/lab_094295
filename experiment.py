@@ -75,7 +75,6 @@ def create_summary_table(results):
             data.append(row)
 
     df = pd.DataFrame(data)
-    print(df)
     return df
 
 
@@ -95,7 +94,9 @@ def visualize_results(results):
     return summary_table
 
 
-def run_experiment(data_dir, models, sampling_methods, iterations=5, samples_per_iteration=10):
+def run_experiment(data_dir, models, sampling_methods,
+                   active_learning_iterations=5, training_epochs=5, samples_per_iteration=32,
+                   total_train_samples=128):
     """
     Conducts experiments with different models and sampling methods.
 
@@ -109,7 +110,9 @@ def run_experiment(data_dir, models, sampling_methods, iterations=5, samples_per
     Returns:
         dict: Results of the experiments.
     """
-    train_loader, val_loader, test_loader = load_data(data_dir)
+    train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
+        data_dir, batch_size=16, labeled_unlabeled_split=(0.25, 0.75), total_train_samples=total_train_samples)
+
     results = {}
 
     for model_name in models:
@@ -126,11 +129,14 @@ def run_experiment(data_dir, models, sampling_methods, iterations=5, samples_per
 
             # Initialize and run Active Learning
             active_learning_model = active_learning_loop(
-                model, train_loader, val_loader, test_loader, train_loader, iterations, samples_per_iteration
+                model, train_loader_labeled, val_loader, test_loader, unlabeled_data=train_loader_unlabeled,
+                method=method,
+                iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,
+                model_train_epochs=training_epochs
             )
 
             # Evaluate model after each iteration and store results
-            for i in range(iterations):
+            for i in range(active_learning_iterations):
                 metrics = evaluate_model(active_learning_model, test_loader)
                 for key in results[model_name][method]:
                     results[model_name][method][key].append(metrics[key])
@@ -138,4 +144,3 @@ def run_experiment(data_dir, models, sampling_methods, iterations=5, samples_per
     # Visualize results
     summary_table = visualize_results(results)
     return summary_table
-
