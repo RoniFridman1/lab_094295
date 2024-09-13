@@ -4,8 +4,8 @@ if __name__ == "__main__":
     DATA_DIR = "chest_xray"
     MODELS = ["vgg16","resnet18"]
     SAMPLING_METHODS = ["uncertainty", "entropy",'random']
-    ACTIVE_LEARNING_ITERATIONS = 5
-    MODEL_TRAINING_EPOCHS = 5
+    ACTIVE_LEARNING_ITERATIONS = 3
+    MODEL_TRAINING_EPOCHS = 2
     SAMPLES_PER_ITERATION = 5
     TOTAL_TRAINING_SAMPLES=40
     BATCH_SIZE=5
