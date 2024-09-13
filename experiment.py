@@ -26,7 +26,7 @@ def plot_learning_curves(metrics_history, model_name, sampling_method,output_dir
     plt.ylabel('Metric Value')
     plt.legend()
     plt.grid(True)
-    plt.imsave(f"{output_dir}/learning_curves.png")
+    plt.savefig(f"{output_dir}/learning_curves.png")
     plt.close()
 
 
@@ -48,7 +48,7 @@ def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
     plt.ylabel('ROC-AUC Score')
     plt.legend()
     plt.grid(True)
-    plt.imsave(f"{output_dir}/learning_curves.png")
+    plt.savefig(f"{output_dir}/ROC_curves.png")
     plt.close()
 
 
