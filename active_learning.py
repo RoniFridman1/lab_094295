@@ -91,7 +91,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
     for j in range(iterations):
         print(
             f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
-                                +f"Unlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
+                                +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
         if len(unlabeled_data) <= 0:
             break
         # Train the model on current labeled data

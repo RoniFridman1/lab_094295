@@ -118,11 +118,11 @@ def run_experiment(data_dir, models, sampling_methods,
     results = {}
 
     for model_name in models:
-        OUTPUT_DIR = f"output/{model_name}_{sampling_methods}"
         results[model_name] = {}
         model = initialize_model(model_name)
 
         for method in sampling_methods:
+            OUTPUT_DIR = f"output/{model_name}_{method}"
             print(f"Running experiment with {model_name} and {method} sampling...")
 
             # Initialize results storage for this model and method
