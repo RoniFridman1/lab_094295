@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 
+
 def select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10):
     """
     Selects the most informative samples based on the chosen strategy.
@@ -44,7 +45,8 @@ def select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10
 
             # Entropy sampling: select samples with highest entropy
             elif strategy == 'entropy':
-                entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10), dim=1)  # Add epsilon to avoid log(0)
+                entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10),
+                                            dim=1)  # Add epsilon to avoid log(0)
                 scores.extend(entropy_scores.cpu().numpy())
                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
 
@@ -68,10 +70,8 @@ def select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10
     return selected_samples.tolist(), selected_labels
 
 
-
-
 def active_learning_loop(model, train_generator, val_generator, test_generator, unlabeled_data, method, iterations=5,
-                         samples_per_iteration=10, model_train_epochs=2):
+                         samples_per_iteration=10, model_train_epochs=2, output_dir='output'):
     """
     Main loop for Active Learning.
 
@@ -89,8 +89,10 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         model (torch.nn.Module): The trained model after Active Learning.
     """
     for j in range(iterations):
-        print(f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator)} Unlabeled: {len(unlabeled_data)}")
-        if len(unlabeled_data)<=0:
+        print(
+            f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
+                                +f"Unlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
+        if len(unlabeled_data) <= 0:
             break
         # Train the model on current labeled data
         train_model(model, train_generator, val_generator, epochs=model_train_epochs)
@@ -101,8 +103,9 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
 
         # Retrieve selected images and labels from the unlabeled dataloader
         train_generator.dataset.indices = train_generator.dataset.indices + [unlabeled_data.dataset.indices[i]
-                                          for i in range(len(unlabeled_data.dataset.indices))
-                                          if i in selected_samples]
+                                                                             for i in
+                                                                             range(len(unlabeled_data.dataset.indices))
+                                                                             if i in selected_samples]
         updated_train_data = train_generator.dataset
 
         # Add new labeled samples to the existing training data
@@ -116,7 +119,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         unlabeled_data = DataLoader(updated_unlabeled_data, batch_size=unlabeled_data.batch_size, shuffle=False)
 
         # Evaluate the model
-        evaluate_model(model, test_generator,iteration=j)
+        evaluate_model(model, test_generator, iteration=j, output_dir=output_dir)
     return model
 
 

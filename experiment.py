@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def plot_learning_curves(metrics_history, model_name, sampling_method):
+def plot_learning_curves(metrics_history, model_name, sampling_method,output_dir):
     """
     Plots learning curves for a given model and sampling method.
 
@@ -26,10 +26,11 @@ def plot_learning_curves(metrics_history, model_name, sampling_method):
     plt.ylabel('Metric Value')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    plt.imsave(f"{output_dir}/learning_curves.png")
+    plt.close()
 
 
-def plot_roc_curves(roc_auc_scores, model_name, sampling_method):
+def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
     """
     Plots ROC curves for different models or sampling methods.
 
@@ -47,7 +48,8 @@ def plot_roc_curves(roc_auc_scores, model_name, sampling_method):
     plt.ylabel('ROC-AUC Score')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    plt.imsave(f"{output_dir}/learning_curves.png")
+    plt.close()
 
 
 def create_summary_table(results):
@@ -78,7 +80,7 @@ def create_summary_table(results):
     return df
 
 
-def visualize_results(results):
+def visualize_results(results, output_dir):
     """
     Visualizes the results using various plots and tables.
 
@@ -87,8 +89,8 @@ def visualize_results(results):
     """
     for model_name, sampling_results in results.items():
         for sampling_method, metrics in sampling_results.items():
-            plot_learning_curves(metrics, model_name, sampling_method)
-            plot_roc_curves(metrics['roc_auc'], model_name, sampling_method)
+            plot_learning_curves(metrics, model_name, sampling_method,output_dir)
+            plot_roc_curves(metrics['roc_auc'], model_name, sampling_method,output_dir)
 
     summary_table = create_summary_table(results)
     return summary_table
@@ -96,7 +98,7 @@ def visualize_results(results):
 
 def run_experiment(data_dir, models, sampling_methods,
                    active_learning_iterations=5, training_epochs=5, samples_per_iteration=32,
-                   total_train_samples=128):
+                   total_train_samples=128, batch_size = 32):
     """
     Conducts experiments with different models and sampling methods.
 
@@ -111,11 +113,12 @@ def run_experiment(data_dir, models, sampling_methods,
         dict: Results of the experiments.
     """
     train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
-        data_dir, batch_size=16, labeled_unlabeled_split=(0.25, 0.75), total_train_samples=total_train_samples)
+        data_dir, batch_size=batch_size, labeled_unlabeled_split=(0.25, 0.75), total_train_samples=total_train_samples)
 
     results = {}
 
     for model_name in models:
+        OUTPUT_DIR = f"output/{model_name}_{sampling_methods}"
         results[model_name] = {}
         model = initialize_model(model_name)
 
@@ -132,7 +135,8 @@ def run_experiment(data_dir, models, sampling_methods,
                 model, train_loader_labeled, val_loader, test_loader, unlabeled_data=train_loader_unlabeled,
                 method=method,
                 iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,
-                model_train_epochs=training_epochs
+                model_train_epochs=training_epochs,
+                output_dir = OUTPUT_DIR
             )
 
             # Evaluate model after each iteration and store results
@@ -142,5 +146,5 @@ def run_experiment(data_dir, models, sampling_methods,
                     results[model_name][method][key].append(metrics[key])
 
     # Visualize results
-    summary_table = visualize_results(results)
+    summary_table = visualize_results(results,output_dir="output")
     return summary_table
