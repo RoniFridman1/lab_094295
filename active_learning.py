@@ -89,7 +89,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         model (torch.nn.Module): The trained model after Active Learning.
     """
     for j in range(iterations):
-        print(f"Active Learning Iteration {j + 1}/{iterations}")
+        print(f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator)} Unlabeled: {len(unlabeled_data)}")
         if len(unlabeled_data)<=0:
             break
         # Train the model on current labeled data
@@ -166,7 +166,7 @@ def evaluate_model(model, data_loader, output_dir='output', iteration=None):
     conf_matrix = confusion_matrix(all_labels, all_preds)
 
     # Display metrics
-    print(f"Accuracy: {accuracy:.2f}%")
+    print(f"Test Accuracy: {accuracy:.2f}%")
     print(f"Precision: {precision:.2f}")
     print(f"Recall: {recall:.2f}")
     print(f"F1-Score: {f1:.2f}")
