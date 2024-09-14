@@ -22,7 +22,7 @@ def plot_learning_curves(metrics_history, model_name, sampling_method,output_dir
     plt.ylabel('Metric Value')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"{output_dir}/learning_curves.png")
+    plt.savefig(f"{output_dir}/learning_curves_{model_name}_{sampling_method}.png")
     plt.close()
 
 
@@ -44,7 +44,7 @@ def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
     plt.ylabel('ROC-AUC Score')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"{output_dir}/ROC_curves.png")
+    plt.savefig(f"{output_dir}/ROC_curves_{model_name}_{sampling_method}.png")
     plt.close()
 
 
@@ -61,18 +61,21 @@ def create_summary_table(results):
     data = []
     for model_name, sampling_results in results.items():
         for sampling_method, metrics in sampling_results.items():
-            row = {
-                'Model': model_name,
-                'Sampling Method': sampling_method,
-                'Final Accuracy': metrics['accuracy'][-1],
-                'Final Precision': metrics['precision'][-1],
-                'Final Recall': metrics['recall'][-1],
-                'Final F1-Score': metrics['f1_score'][-1],
-                'Final ROC-AUC': metrics['roc_auc'][-1],
-            }
-            data.append(row)
+            for i in range(len(metrics['accuracy'])):
+                row = {
+                    'Model': model_name,
+                    'Sampling Method': sampling_method,
+                    'Active Learning Round': i,
+                    'Accuracy': metrics['accuracy'][i],
+                    'Precision': metrics['precision'][i],
+                    'Recall': metrics['recall'][i],
+                    'F1-Score': metrics['f1_score'][i],
+                    'ROC-AUC': metrics['roc_auc'][i],
+                }
+                data.append(row)
 
     df = pd.DataFrame(data)
+    df.to_csv("output/summary_table_csv")
     return df
 
 
@@ -99,5 +102,5 @@ def process_output_text(path):
             out.write(l)
         out.close()
 
-output_text = r"C:\Users\soldier109\Documents\Technion\Semester 10\094295 - Lab in Data Visualization\Project\code\output\130924_1913.txt"
-process_output_text(output_text)
+# output_text = r"C:\Users\soldier109\Documents\Technion\Semester 10\094295 - Lab in Data Visualization\Project\code\output\130924_1913.txt"
+# process_output_text(output_text)

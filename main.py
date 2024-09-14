@@ -2,10 +2,11 @@ from experiment import run_experiment
 
 if __name__ == "__main__":
     DATA_DIR = "chest_xray"
-    MODELS = ["vgg16","resnet18"]
+    # MODELS = ["resnet18","vgg16"]
+    MODELS = ["resnet18",]
     SAMPLING_METHODS = ["uncertainty", "entropy",'random']
-    ACTIVE_LEARNING_ITERATIONS = 2
-    MODEL_TRAINING_EPOCHS = 2
+    ACTIVE_LEARNING_ITERATIONS = 3
+    MODEL_TRAINING_EPOCHS = 1
     SAMPLES_PER_ITERATION = 10
     TOTAL_TRAINING_SAMPLES = 50
     TOTAL_TEST_SAMPLES = 20
