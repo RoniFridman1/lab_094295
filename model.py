@@ -30,7 +30,7 @@ def initialize_model(model_name: str):
     return model
 
 
-def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-4):
+def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-3):
     """
     Trains the model on the provided data loaders.
 
@@ -67,13 +67,14 @@ def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-4):
         print(f"Epoch [{epoch + 1}/{epochs}], Loss: {running_loss / len(train_loader):.4f}")
 
         # Validation step
-        evaluate_model(model, val_loader)
+        evaluate_model(model, val_loader, train_loader)
+
 
 
     return model
 
 
-def evaluate_model(model, data_loader):
+def evaluate_model(model, val_loader, train_loader):
     """
     Evaluates the model on a given dataset.
 
@@ -85,17 +86,27 @@ def evaluate_model(model, data_loader):
         None
     """
     model.eval()
-    correct = 0
-    total = 0
+    correct_val = 0
+    total_val = 0
+    total_train = 0
+    correct_train = 0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with torch.no_grad():
-        for images, labels in data_loader:
+        for images, labels in val_loader:
             images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
             outputs = model(images)
             predicted = (torch.sigmoid(outputs) > 0.5).float()
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            total_val += labels.size(0)
+            correct_val += (predicted == labels).sum().item()
 
-    accuracy = 100 * correct / total
-    print(f"Val Accuracy: {accuracy:.2f}%")
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
+            outputs = model(images)
+            predicted = (torch.sigmoid(outputs) > 0.5).float()
+            total_train += labels.size(0)
+            correct_train += (predicted == labels).sum().item()
+    accuracy_val = 100 * correct_val / total_val
+    accuracy_train = 100 * correct_train / total_train
+    print(f"Val Accuracy: {accuracy_val:.2f}%")
+    print(f"Train Accuracy: {accuracy_train:.2f}%")
