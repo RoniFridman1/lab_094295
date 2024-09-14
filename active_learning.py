@@ -124,7 +124,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
     return model,metrics
 
 
-def evaluate_model(model, data_loader, output_dir='output', iteration=None):
+def evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):
     """
     Evaluates the model on a given dataset with additional metrics and saves results to files.
 
@@ -169,12 +169,12 @@ def evaluate_model(model, data_loader, output_dir='output', iteration=None):
     roc_auc = roc_auc_score(all_labels, all_probs)
     conf_matrix = confusion_matrix(all_labels, all_preds)
 
-    # Display metrics
-    print(f"Test Accuracy: {accuracy:.2f}%")
-    print(f"Precision: {precision:.2f}")
-    print(f"Recall: {recall:.2f}")
-    print(f"F1-Score: {f1:.2f}")
-    print(f"ROC-AUC: {roc_auc:.2f}")
+    if print_metrics:
+        print(f"Test Accuracy: {accuracy:.2f}%")
+        print(f"Precision: {precision:.2f}")
+        print(f"Recall: {recall:.2f}")
+        print(f"F1-Score: {f1:.2f}")
+        print(f"ROC-AUC: {roc_auc:.2f}")
 
     # Save metrics to a JSON file
     metrics = {
