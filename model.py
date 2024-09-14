@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
+from model_downloader import download_model
+
 
 def initialize_model(model_name: str):
     """
@@ -13,7 +15,6 @@ def initialize_model(model_name: str):
     Returns:
         model (torch.nn.Module): The initialized model.
     """
-    from model_downloader import download_model
     model = download_model(model_name)
 
     # Modify the final layer for binary classification (Pneumonia vs. Normal)
