@@ -45,7 +45,7 @@ def run_experiment(data_dir, models, sampling_methods,
             }
 
             # Initialize and run Active Learning
-            active_learning_model, metrics = active_learning_loop(
+            metrics = active_learning_loop(
                 model, train_loader_labeled, val_loader, test_loader, unlabeled_data=train_loader_unlabeled,
                 method=method,
                 iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,

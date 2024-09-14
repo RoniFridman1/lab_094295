@@ -1,3 +1,4 @@
+import copy
 import os, json
 from model import train_model
 import numpy as np
@@ -93,13 +94,14 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         print(
             f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
                                 +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
+        iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
         if len(unlabeled_data) <= 0:
             break
         # Train the model on current labeled data
-        train_model(model, train_generator, val_generator, epochs=model_train_epochs)
+        iter_model = train_model(iter_model, train_generator, val_generator, epochs=model_train_epochs)
 
         # Select new samples to be labeled
-        selected_samples, selected_labels = select_samples(model, unlabeled_data, strategy=method,
+        selected_samples, selected_labels = select_samples(iter_model, unlabeled_data, strategy=method,
                                                            num_samples=samples_per_iteration)
 
         # Retrieve selected images and labels from the unlabeled dataloader
@@ -120,8 +122,8 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         unlabeled_data = DataLoader(updated_unlabeled_data, batch_size=unlabeled_data.batch_size, shuffle=False)
 
         # Evaluate the model
-        metrics.append(evaluate_model(model, test_generator, iteration=j, output_dir=output_dir))
-    return model,metrics
+        metrics.append(evaluate_model(iter_model, test_generator, iteration=j, output_dir=output_dir))
+    return metrics
 
 
 def evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):

@@ -92,6 +92,7 @@ def visualize_results(results, output_dir):
             plot_roc_curves(metrics['roc_auc'], model_name, sampling_method,output_dir)
 
     summary_table = create_summary_table(results)
+    plot_summary_table(summary_table)
     return summary_table
 def process_output_text(path):
     output_path = os.path.join(Path(path).parent, os.path.basename(path)[:-4]+"_processed.txt")
@@ -102,5 +103,35 @@ def process_output_text(path):
             out.write(l)
         out.close()
 
-# output_text = r"C:\Users\soldier109\Documents\Technion\Semester 10\094295 - Lab in Data Visualization\Project\code\output\130924_1913.txt"
-# process_output_text(output_text)
+
+def plot_summary_table(df, output_path='output/summary'):
+    # Ensure the save_location directory exists
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    # Metrics to plot (excluding non-numeric columns)
+    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
+
+    # Iterate over each metric to generate one graph per metric
+    for metric in metrics:
+        plt.figure(figsize=(10, 6))
+
+        # Plot each combination of Model and Sampling Method
+        for (model, sampling_method), group in df.groupby(['Model', 'Sampling Method']):
+            plt.plot(group['Active Learning Round'], group[metric], label=f'{model} - {sampling_method}')
+
+        # Add labels, title, and legend
+        plt.xlabel('Active Learning Round')
+        plt.ylabel(metric)
+        plt.title(f'{metric} Across Models and Sampling Methods')
+        plt.legend(loc='best')
+
+        # Save the plot as a PNG file
+        filename = f"{metric}.png"
+        filepath = os.path.join(output_path, filename)
+        plt.savefig(filepath)
+
+        # Close the plot to avoid overlapping figures in loops
+        plt.close()
+
+    print(f"Plots saved at {output_path}")

@@ -70,6 +70,7 @@ def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-3):
         # Validation step
         evaluate_model(model, val_loader)
 
+
     return model
 
 
