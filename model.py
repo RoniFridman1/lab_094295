@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from tqdm import tqdm
 from model_downloader import download_model
 
 
@@ -54,7 +53,7 @@ def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-3):
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
-        for images, labels in tqdm(train_loader):
+        for images, labels in train_loader:
             images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
             optimizer.zero_grad()
 

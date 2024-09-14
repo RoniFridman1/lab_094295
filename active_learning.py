@@ -1,5 +1,6 @@
 import copy
 import os, json
+from tqdm import tqdm
 from model import train_model
 import numpy as np
 import torch
@@ -90,7 +91,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         model (torch.nn.Module): The trained model after Active Learning.
     """
     metrics = []
-    for j in range(iterations):
+    for j in tqdm(range(iterations)):
         print(
             f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
                                 +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
