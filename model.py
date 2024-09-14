@@ -30,7 +30,7 @@ def initialize_model(model_name: str):
     return model
 
 
-def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-3):
+def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-4):
     """
     Trains the model on the provided data loaders.
 
