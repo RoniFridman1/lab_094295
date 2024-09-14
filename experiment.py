@@ -45,7 +45,7 @@ def run_experiment(data_dir, models, sampling_methods,
             }
 
             # Initialize and run Active Learning
-            active_learning_model = active_learning_loop(
+            active_learning_model, metrics = active_learning_loop(
                 model, train_loader_labeled, val_loader, test_loader, unlabeled_data=train_loader_unlabeled,
                 method=method,
                 iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,
@@ -54,10 +54,9 @@ def run_experiment(data_dir, models, sampling_methods,
             )
 
             # Evaluate model after each iteration and store results
-            for i in range(active_learning_iterations):
-                metrics = evaluate_model(active_learning_model, test_loader)
+            for met in metrics:
                 for key in results[model_name][method]:
-                    results[model_name][method][key].append(metrics[key])
+                    results[model_name][method][key].append(met[key])
 
     # Visualize results
     summary_table = visualize_results(results,output_dir="output")

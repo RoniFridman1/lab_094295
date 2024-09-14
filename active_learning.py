@@ -88,6 +88,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
     Returns:
         model (torch.nn.Module): The trained model after Active Learning.
     """
+    metrics = []
     for j in range(iterations):
         print(
             f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
@@ -119,8 +120,8 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         unlabeled_data = DataLoader(updated_unlabeled_data, batch_size=unlabeled_data.batch_size, shuffle=False)
 
         # Evaluate the model
-        evaluate_model(model, test_generator, iteration=j, output_dir=output_dir)
-    return model
+        metrics.append(evaluate_model(model, test_generator, iteration=j, output_dir=output_dir))
+    return model,metrics
 
 
 def evaluate_model(model, data_loader, output_dir='output', iteration=None):
