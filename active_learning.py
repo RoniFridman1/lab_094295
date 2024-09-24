@@ -1,6 +1,7 @@
 import copy
 import time
-import os, json
+import os
+import json
 from tqdm import tqdm
 from model import train_model
 import numpy as np
@@ -10,7 +11,7 @@ from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, conf
 import matplotlib.pyplot as plt
 
 
-def select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10):
+def _select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10):
     """
     Selects the most informative samples based on the chosen strategy.
 
@@ -48,8 +49,7 @@ def select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10
 
             # Entropy sampling: select samples with highest entropy
             elif strategy == 'entropy':
-                entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10),
-                                            dim=1)  # Add epsilon to avoid log(0)
+                entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10), dim=1)  # Add epsilon to avoid log(0)
                 scores.extend(entropy_scores.cpu().numpy())
                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
 
@@ -73,64 +73,7 @@ def select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10
     return selected_samples.tolist(), selected_labels
 
 
-def active_learning_loop(model, train_generator, val_generator, test_generator, unlabeled_data, method, iterations=5,
-                         samples_per_iteration=10, model_train_epochs=2, output_dir='output'):
-    """
-    Main loop for Active Learning.
-
-    Args:
-        model (torch.nn.Module): The machine learning model to be trained.
-        train_generator (DataLoader): DataLoader for training data.
-        val_generator (DataLoader): DataLoader for validation data.
-        test_generator (DataLoader): DataLoader for test data.
-        unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
-        method (str): Strategy for sample selection (e.g., 'uncertainty', 'entropy', 'random').
-        iterations (int): Number of Active Learning iterations.
-        samples_per_iteration (int): Number of samples to query per iteration.
-
-    Returns:
-        model (torch.nn.Module): The trained model after Active Learning.
-    """
-    metrics = []
-    for j in range(iterations):
-        t0 = time.time()
-        print(
-            f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
-                                +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
-        iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
-        if len(unlabeled_data) <= 0:
-            break
-        # Train the model on current labeled data
-        iter_model = train_model(iter_model, train_generator, val_generator, epochs=model_train_epochs)
-
-        # Select new samples to be labeled
-        selected_samples, selected_labels = select_samples(iter_model, unlabeled_data, strategy=method,
-                                                           num_samples=samples_per_iteration)
-
-        # Retrieve selected images and labels from the unlabeled dataloader
-        train_generator.dataset.indices = train_generator.dataset.indices + [unlabeled_data.dataset.indices[i]
-                                                                             for i in
-                                                                             range(len(unlabeled_data.dataset.indices))
-                                                                             if i in selected_samples]
-        updated_train_data = train_generator.dataset
-
-        # Add new labeled samples to the existing training data
-        unlabeled_data.dataset.indices = [unlabeled_data.dataset.indices[i]
-                                          for i in range(len(unlabeled_data.dataset.indices))
-                                          if i not in selected_samples]
-        updated_unlabeled_data = unlabeled_data.dataset
-
-        # Recreate train dataloader with updated data
-        train_generator = DataLoader(updated_train_data, batch_size=train_generator.batch_size, shuffle=True)
-        unlabeled_data = DataLoader(updated_unlabeled_data, batch_size=unlabeled_data.batch_size, shuffle=False)
-
-        # Evaluate the model
-        metrics.append(evaluate_model(iter_model, test_generator, iteration=j, output_dir=output_dir))
-        print(f"Time of Iteration: {round(time.time()-t0)} sec")
-    return metrics
-
-
-def evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):
+def _evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):
     """
     Evaluates the model on a given dataset with additional metrics and saves results to files.
 
@@ -202,3 +145,62 @@ def evaluate_model(model, data_loader, output_dir='output', iteration=None, prin
     plt.close()  # Close the plot to avoid display overlap in loops
 
     return metrics
+
+
+def active_learning_loop(model, train_generator, val_generator, test_generator, unlabeled_data, method, iterations=5,
+                         samples_per_iteration=10, model_train_epochs=2, output_dir='output'):
+    """
+    Main loop for Active Learning.
+
+    Args:
+        model (torch.nn.Module): The machine learning model to be trained.
+        train_generator (DataLoader): DataLoader for training data.
+        val_generator (DataLoader): DataLoader for validation data.
+        test_generator (DataLoader): DataLoader for test data.
+        unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
+        method (str): Strategy for sample selection (e.g., 'uncertainty', 'entropy', 'random').
+        iterations (int): Number of Active Learning iterations.
+        samples_per_iteration (int): Number of samples to query per iteration.
+
+    Returns:
+        model (torch.nn.Module): The trained model after Active Learning.
+    """
+    metrics = []
+    for j in range(iterations):
+        t0 = time.time()
+        print(
+            f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
+                                +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
+        iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
+        if len(unlabeled_data) <= 0:
+            break
+        # Train the model on current labeled data
+        iter_model = train_model(iter_model, train_generator, val_generator, epochs=model_train_epochs)
+
+        # Select new samples to be labeled
+        selected_samples, selected_labels = _select_samples(iter_model, unlabeled_data, strategy=method,
+                                                            num_samples=samples_per_iteration)
+
+        # Retrieve selected images and labels from the unlabeled dataloader
+        train_generator.dataset.indices = train_generator.dataset.indices + [unlabeled_data.dataset.indices[i]
+                                                                             for i in
+                                                                             range(len(unlabeled_data.dataset.indices))
+                                                                             if i in selected_samples]
+        updated_train_data = train_generator.dataset
+
+        # Add new labeled samples to the existing training data
+        unlabeled_data.dataset.indices = [unlabeled_data.dataset.indices[i]
+                                          for i in range(len(unlabeled_data.dataset.indices))
+                                          if i not in selected_samples]
+        updated_unlabeled_data = unlabeled_data.dataset
+
+        # Recreate train dataloader with updated data
+        train_generator = DataLoader(updated_train_data, batch_size=train_generator.batch_size, shuffle=True)
+        unlabeled_data = DataLoader(updated_unlabeled_data, batch_size=unlabeled_data.batch_size, shuffle=False)
+
+        # Evaluate the model
+        metrics.append(_evaluate_model(iter_model, test_generator, iteration=j, output_dir=output_dir))
+        print(f"Time of Iteration: {round(time.time()-t0)} sec")
+    return metrics
+
+
