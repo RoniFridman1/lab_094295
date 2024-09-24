@@ -1,6 +1,6 @@
 from data_loader import load_data
 from model import initialize_model, train_model
-from active_learning import active_learning_loop, evaluate_model
+from active_learning import active_learning_loop, _evaluate_model
 from model_downloader import download_model
 from utils import visualize_results
 
