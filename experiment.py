@@ -5,12 +5,9 @@ from model_downloader import download_model
 from utils import visualize_results
 
 
-
-
-
 def run_experiment(data_dir, models, sampling_methods,
                    active_learning_iterations=5, training_epochs=5, samples_per_iteration=32,
-                   total_train_samples=128, total_test_samples=100, batch_size = 32):
+                   total_train_samples=128, total_test_samples=100, batch_size=32):
     """
     Conducts experiments with different models and sampling methods.
 
@@ -18,8 +15,12 @@ def run_experiment(data_dir, models, sampling_methods,
         data_dir (str): Directory for the dataset.
         models (list): List of model names (e.g., ['resnet18', 'vgg16']).
         sampling_methods (list): List of sampling methods (e.g., ['uncertainty', 'entropy']).
-        iterations (int): Number of Active Learning iterations.
+        active_learning_iterations (int): Number of Active Learning iterations.
+        training_epochs (int): number training epochs performed in each iteration.
         samples_per_iteration (int): Number of samples to query per iteration.
+        total_train_samples (int): number of train samples.
+        total_test_samples (int): number of test samples.
+        batch_size (int): batch size argument for the data loader
 
     Returns:
         dict: Results of the experiments.
@@ -50,8 +51,7 @@ def run_experiment(data_dir, models, sampling_methods,
                 method=method,
                 iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,
                 model_train_epochs=training_epochs,
-                output_dir = OUTPUT_DIR
-            )
+                output_dir=OUTPUT_DIR)
 
             # Evaluate model after each iteration and store results
             for met in metrics:
@@ -59,5 +59,5 @@ def run_experiment(data_dir, models, sampling_methods,
                     results[model_name][method][key].append(met[key])
 
     # Visualize results
-    summary_table = visualize_results(results,output_dir="output")
+    summary_table = visualize_results(results, output_dir="output")
     return summary_table

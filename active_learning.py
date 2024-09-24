@@ -1,6 +1,7 @@
 import copy
 import time
-import os, json
+import os
+import json
 from tqdm import tqdm
 from model import train_model
 import numpy as np
