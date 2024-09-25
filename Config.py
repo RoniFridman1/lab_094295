@@ -30,3 +30,9 @@ class Config:
             self.leaning_rate = 1e-5
         if model_name == 'vgg16':
             self.leaning_rate = 1e-6
+
+    def config_to_str(self):
+        conf_str = f"{self.seed=}\n{self.SAMPLING_METHODS=}\n{self.ACTIVE_LEARNING_ITERATIONS=}\n" +\
+            f"{self.MODEL_TRAINING_EPOCHS=}\n{self.SAMPLES_PER_ITERATION=}\n{self.TOTAL_TRAINING_SAMPLES=}\n" +\
+            f"{self.TRAIN_LABELED_UNLABELED_RATIO=}\n{self.TOTAL_TEST_SAMPLES}\n{self.BATCH_SIZE=}"
+        return conf_str

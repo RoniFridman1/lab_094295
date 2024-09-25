@@ -50,7 +50,7 @@ def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
     plt.close()
 
 
-def create_summary_table(results):
+def create_summary_table(results, output_dir):
     """
     Creates a summary table comparing models and sampling methods.
 
@@ -77,7 +77,7 @@ def create_summary_table(results):
                 data.append(row)
 
     df = pd.DataFrame(data)
-    df.to_csv("output/summary_table_csv")
+    df.to_csv(os.path.join(output_dir,"summary_table_csv"))
     return df
 
 
@@ -93,8 +93,8 @@ def visualize_results(results, output_dir):
             plot_learning_curves(metrics, model_name, sampling_method,output_dir)
             plot_roc_curves(metrics['roc_auc'], model_name, sampling_method,output_dir)
 
-    summary_table = create_summary_table(results)
-    plot_summary_table(summary_table)
+    summary_table = create_summary_table(results,output_dir)
+    plot_summary_table(summary_table,os.path.join(output_dir,"summary")
     return summary_table
 def process_output_text(path):
     output_path = os.path.join(Path(path).parent, os.path.basename(path)[:-4]+"_processed.txt")
