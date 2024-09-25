@@ -1,5 +1,7 @@
 import os
 
+import torch
+
 from data_loader import load_data
 from model import initialize_model, train_model
 from active_learning import active_learning_loop, _evaluate_model
@@ -28,6 +30,7 @@ def run_experiment(models):
 
     results = {}
     config = Config()
+    torch.manual_seed(config.seed)
     for model_name in models:
         config.update_model_name(model_name)
         results[model_name] = {}
