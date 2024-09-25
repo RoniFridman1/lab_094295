@@ -34,7 +34,7 @@ def run_experiment(data_dir, models, sampling_methods,
 
         for method in sampling_methods:
             train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
-                data_dir, batch_size=batch_size, labeled_unlabeled_split=(0.25, 0.75),
+                data_dir, batch_size=batch_size, labeled_unlabeled_split=(0.1, 0.9),
                 total_train_samples=total_train_samples, total_test_samples=total_test_samples)
 
             OUTPUT_DIR = f"output/{model_name}_{method}"
@@ -49,6 +49,7 @@ def run_experiment(data_dir, models, sampling_methods,
             metrics = active_learning_loop(
                 model, train_loader_labeled, val_loader, test_loader, unlabeled_data=train_loader_unlabeled,
                 method=method,
+                model_name=model_name,
                 iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,
                 model_train_epochs=training_epochs,
                 output_dir=OUTPUT_DIR)

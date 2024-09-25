@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from model_downloader import download_model
 
@@ -20,12 +21,19 @@ def initialize_model(model_name: str):
     if model_name == 'resnet18':
         # ResNet18
         num_features = model.fc.in_features
-        model.fc = nn.Linear(num_features, 1)  # Update the fully connected layer for binary classification
+        model.fc = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(num_features, 1)
+        )
+        # model.fc = nn.Linear(num_features, 1)  # Update the fully connected layer for binary classification
 
     elif model_name == 'vgg16':
         # VGG16
         num_features = model.classifier[-1].in_features
-        model.classifier[-1] = nn.Linear(num_features, 1)  # Update the last layer in classifier for binary classification
+        model.classifier[-1] = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(num_features, 1)
+        )  # Update the last layer in classifier for binary classification
 
     return model
 
@@ -44,6 +52,7 @@ def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-4):
     Returns:
         model (torch.nn.Module): Trained model.
     """
+
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 

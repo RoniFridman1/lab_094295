@@ -24,7 +24,7 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
 
     # Resize images to 224x224 pixels -> Convert to PyTorch tensors. -> Normalizes to a standard range
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((312,312)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -36,11 +36,11 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
 
     # randomly select some of the samples in each dataset, and split the test set to labeled and unlabeled sets
     train_dataset = datasets.ImageFolder(train_dir, transform=transform)
-    train_dataset = torch.utils.data.Subset(train_dataset, np.random.choice(len(train_dataset), total_train_samples, replace=False))
-    train_dataset_labeled, train_dataset_unlabeled = torch.utils.data.random_split(train_dataset, labeled_unlabeled_split)
-
     val_dataset = datasets.ImageFolder(val_dir, transform=transform)
     test_dataset = datasets.ImageFolder(test_dir, transform=transform)
+
+    train_dataset = torch.utils.data.Subset(train_dataset, np.random.choice(len(train_dataset), total_train_samples, replace=False))
+    train_dataset_labeled, train_dataset_unlabeled = torch.utils.data.random_split(train_dataset, labeled_unlabeled_split)
     test_dataset = torch.utils.data.Subset(test_dataset, np.random.choice(len(test_dataset), total_test_samples, replace=False))
 
     train_loader_labeled = DataLoader(train_dataset_labeled, batch_size=batch_size, shuffle=True)

@@ -3,6 +3,8 @@ import time
 import os
 import json
 from tqdm import tqdm
+
+import Config
 from model import train_model
 import numpy as np
 import torch
@@ -147,8 +149,8 @@ def _evaluate_model(model, data_loader, output_dir='output', iteration=None, pri
     return metrics
 
 
-def active_learning_loop(model, train_generator, val_generator, test_generator, unlabeled_data, method, iterations=5,
-                         samples_per_iteration=10, model_train_epochs=2, output_dir='output'):
+def active_learning_loop(model, train_generator, val_generator, test_generator, unlabeled_data, method, model_name,
+                         iterations=5, samples_per_iteration=10, model_train_epochs=2, output_dir='output'):
     """
     Main loop for Active Learning.
 
@@ -175,7 +177,9 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         if len(unlabeled_data) <= 0:
             break
         # Train the model on current labeled data
-        iter_model = train_model(iter_model, train_generator, val_generator, epochs=model_train_epochs)
+        model_config = Config.Config(model_name)
+        iter_model = train_model(iter_model, train_generator, val_generator, epochs=model_train_epochs,
+                                 learning_rate=model_config.leaning_rate)
 
         # Select new samples to be labeled
         selected_samples, selected_labels = _select_samples(iter_model, unlabeled_data, strategy=method,
