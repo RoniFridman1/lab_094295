@@ -4,6 +4,7 @@ import os
 class Config:
     def __init__(self):
         self.seed = 1
+        self.start_time = datetime.now()
         self.model_name = None
         self.leaning_rate = None
         self.DATA_DIR = "chest_xray"
@@ -23,9 +24,7 @@ class Config:
         self.OUTPUT_DIR = f"outputs/experiment_{expr_idx}"
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
 
-        with open(os.path.join(self.OUTPUT_DIR,"expr_config.txt"),"w+") as f:
-            f.write(self.config_to_str())
-            f.close()
+
 
 
     def update_model_name(self,model_name):
@@ -36,8 +35,10 @@ class Config:
         if model_name == 'vgg16':
             self.leaning_rate = 1e-6
 
-    def config_to_str(self):
-        conf_str = f"{self.seed=}\n{self.SAMPLING_METHODS=}\n{self.ACTIVE_LEARNING_ITERATIONS=}\n" +\
-            f"{self.MODEL_TRAINING_EPOCHS=}\n{self.SAMPLES_PER_ITERATION=}\n{self.TOTAL_TRAINING_SAMPLES=}\n" +\
-            f"{self.TRAIN_LABELED_UNLABELED_RATIO=}\n{self.TOTAL_TEST_SAMPLES}\n{self.BATCH_SIZE=}"
-        return conf_str
+    def write_config_to_file(self):
+        conf_str = f"Start time={self.start_time}\n{self.seed=}\n{self.SAMPLING_METHODS=}\n{self.ACTIVE_LEARNING_ITERATIONS=}\n" + \
+                   f"{self.MODEL_TRAINING_EPOCHS=}\n{self.SAMPLES_PER_ITERATION=}\n{self.TOTAL_TRAINING_SAMPLES=}\n" + \
+                   f"{self.TRAIN_LABELED_UNLABELED_RATIO=}\n{self.TOTAL_TEST_SAMPLES}\n{self.BATCH_SIZE=}"
+        with open(os.path.join(self.OUTPUT_DIR,"expr_config.txt"),"w+") as f:
+            f.write(conf_str)
+            f.close()

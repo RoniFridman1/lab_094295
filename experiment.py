@@ -64,4 +64,5 @@ def run_experiment(models):
 
     # Visualize results
     summary_table = visualize_results(results, output_dir=config.OUTPUT_DIR)
+    config.write_config_to_file()
     return summary_table
