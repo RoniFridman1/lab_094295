@@ -149,8 +149,8 @@ def _evaluate_model(model, data_loader, output_dir='output', iteration=None, pri
     return metrics
 
 
-def active_learning_loop(model, train_generator, val_generator, test_generator, unlabeled_data, method, model_name,
-                         iterations=5, samples_per_iteration=10, model_train_epochs=2, output_dir='output'):
+def active_learning_loop(model, train_generator, val_generator, test_generator,
+                         unlabeled_data, method, model_name, config, output_dir='output'):
     """
     Main loop for Active Learning.
 
@@ -168,22 +168,21 @@ def active_learning_loop(model, train_generator, val_generator, test_generator, 
         model (torch.nn.Module): The trained model after Active Learning.
     """
     metrics = []
-    for j in range(iterations):
+    for j in range(config.ACTIVE_LEARNING_ITERATIONS):
         t0 = time.time()
         print(
-            f"Active Learning Iteration {j + 1}/{iterations}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
+            f"Active Learning Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
                                 +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
         iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
         if len(unlabeled_data) <= 0:
             break
         # Train the model on current labeled data
-        model_config = Config.Config(model_name)
-        iter_model = train_model(iter_model, train_generator, val_generator, epochs=model_train_epochs,
-                                 learning_rate=model_config.leaning_rate)
+        iter_model = train_model(iter_model, train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
+                                 learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
         selected_samples, selected_labels = _select_samples(iter_model, unlabeled_data, strategy=method,
-                                                            num_samples=samples_per_iteration)
+                                                            num_samples=config.SAMPLES_PER_ITERATION)
 
         # Retrieve selected images and labels from the unlabeled dataloader
         train_generator.dataset.indices = train_generator.dataset.indices + [unlabeled_data.dataset.indices[i]

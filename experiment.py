@@ -1,13 +1,13 @@
+import os
+
 from data_loader import load_data
 from model import initialize_model, train_model
 from active_learning import active_learning_loop, _evaluate_model
 from model_downloader import download_model
 from utils import visualize_results
+from Config import Config
 
-
-def run_experiment(data_dir, models, sampling_methods,
-                   active_learning_iterations=5, training_epochs=5, samples_per_iteration=32,
-                   total_train_samples=128, total_test_samples=100, batch_size=32):
+def run_experiment(models):
     """
     Conducts experiments with different models and sampling methods.
 
@@ -27,17 +27,18 @@ def run_experiment(data_dir, models, sampling_methods,
     """
 
     results = {}
-
+    config = Config()
     for model_name in models:
+        config.update_model_name(model_name)
         results[model_name] = {}
         model = initialize_model(model_name)
 
-        for method in sampling_methods:
+        for method in config.SAMPLING_METHODS:
             train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
-                data_dir, batch_size=batch_size, labeled_unlabeled_split=(0.1, 0.9),
-                total_train_samples=total_train_samples, total_test_samples=total_test_samples)
+                config.DATA_DIR, batch_size=config.BATCH_SIZE, labeled_unlabeled_split=config.TRAIN_LABELED_UNLABELED_RATIO,
+                total_train_samples=config.TOTAL_TRAINING_SAMPLES, total_test_samples=config.TOTAL_TEST_SAMPLES)
 
-            OUTPUT_DIR = f"output/{model_name}_{method}"
+            CURR_OUTPUT_DIR = os.path.join(config.OUTPUT_DIR,f"{model_name}_{method}")
             print(f"Running experiment with {model_name} and {method} sampling...")
 
             # Initialize results storage for this model and method
@@ -50,9 +51,8 @@ def run_experiment(data_dir, models, sampling_methods,
                 model, train_loader_labeled, val_loader, test_loader, unlabeled_data=train_loader_unlabeled,
                 method=method,
                 model_name=model_name,
-                iterations=active_learning_iterations, samples_per_iteration=samples_per_iteration,
-                model_train_epochs=training_epochs,
-                output_dir=OUTPUT_DIR)
+                config=config,
+                output_dir=CURR_OUTPUT_DIR)
 
             # Evaluate model after each iteration and store results
             for met in metrics:
@@ -60,5 +60,5 @@ def run_experiment(data_dir, models, sampling_methods,
                     results[model_name][method][key].append(met[key])
 
     # Visualize results
-    summary_table = visualize_results(results, output_dir="output")
+    summary_table = visualize_results(results, output_dir=config.OUTPUT_DIR)
     return summary_table
