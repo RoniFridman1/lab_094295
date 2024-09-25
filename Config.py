@@ -3,7 +3,7 @@ import os
 
 class Config:
     def __init__(self):
-        self.seed = 132
+        self.seed = 42
         self.start_time = datetime.now()
         self.model_name = None
         self.leaning_rate = None
