@@ -5,7 +5,7 @@ if __name__ == "__main__":
     MODELS = ["resnet18"]
     # MODELS = ["resnet18","vgg16"]
     SAMPLING_METHODS = ["uncertainty", "entropy",'random']
-    ACTIVE_LEARNING_ITERATIONS = 10
+    ACTIVE_LEARNING_ITERATIONS = 5
     MODEL_TRAINING_EPOCHS = 3
     SAMPLES_PER_ITERATION = 25
     TOTAL_TRAINING_SAMPLES = 1000
