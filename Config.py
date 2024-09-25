@@ -7,8 +7,8 @@ class Config:
         self.model_name = None
         self.leaning_rate = None
         self.DATA_DIR = "chest_xray"
-        self.SAMPLING_METHODS = ["uncertainty", "entropy", 'random']
-        self.ACTIVE_LEARNING_ITERATIONS = 5
+        self.SAMPLING_METHODS = ["uncertainty", 'random',"entropy", ]
+        self.ACTIVE_LEARNING_ITERATIONS = 10
         self.MODEL_TRAINING_EPOCHS = 3
         self.SAMPLES_PER_ITERATION = 25
         self.TOTAL_TRAINING_SAMPLES = 1000
@@ -22,6 +22,11 @@ class Config:
         expr_idx = 1 if len(expr_folders_list) == 0 else expr_folders_list[-1] + 1
         self.OUTPUT_DIR = f"outputs/experiment_{expr_idx}"
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
+
+        with open(os.path.join(self.OUTPUT_DIR,"expr_config.txt"),"w+") as f:
+            f.write(self.config_to_str())
+            f.close()
+
 
     def update_model_name(self,model_name):
         self.model_name = model_name
