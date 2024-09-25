@@ -94,7 +94,7 @@ def visualize_results(results, output_dir):
             plot_roc_curves(metrics['roc_auc'], model_name, sampling_method,output_dir)
 
     summary_table = create_summary_table(results,output_dir)
-    plot_summary_table(summary_table,os.path.join(output_dir,"summary")
+    plot_summary_table(summary_table,os.path.join(output_dir,"summary"))
     return summary_table
 def process_output_text(path):
     output_path = os.path.join(Path(path).parent, os.path.basename(path)[:-4]+"_processed.txt")
