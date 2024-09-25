@@ -3,7 +3,7 @@ import os
 
 class Config:
     def __init__(self):
-        self.seed = 42
+        self.seed = 1
         self.model_name = None
         self.leaning_rate = None
         self.DATA_DIR = "chest_xray"
