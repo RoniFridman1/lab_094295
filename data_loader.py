@@ -6,7 +6,7 @@ import numpy as np
 
 
 def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_split=(0.25,0.75),
-              total_test_samples=100):
+              total_test_samples=100, seed=42):
     """
     Loads and preprocesses the X-ray image dataset using PyTorch's DataLoader.
 
@@ -21,7 +21,7 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
         train_loader_labeled, train_loader_unlabeled, val_loader, test_loader: Data loaders for training, validation,
         and test sets.
     """
-
+    torch.manual_seed(seed)
     # Resize images to 224x224 pixels -> Convert to PyTorch tensors. -> Normalizes to a standard range
     transform = transforms.Compose([
         transforms.Resize((312,312)),
