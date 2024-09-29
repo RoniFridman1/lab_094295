@@ -1,5 +1,5 @@
 from data_loader import load_data
-from config import Config
+from Config import Config
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import numpy as np
