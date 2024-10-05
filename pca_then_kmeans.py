@@ -22,9 +22,10 @@ for batch in train_loader_unlabeled:
 unlabeled_data = np.array(unlabeled_data)
 
 # Run PCA dimension reduction
-pca = PCA(n_components=3)
+pca = PCA(n_components=100)
 pca_result = pca.fit_transform(unlabeled_data.reshape(len(unlabeled_data), -1))
-
+ev = pca.explained_variance_ratio_
+print(sum(ev))
 # Plot the PCA results
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
