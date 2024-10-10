@@ -181,7 +181,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
                                  learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
-        selected_samples, selected_labels = _select_samples(iter_model, unlabeled_data, strategy=method,
+        selected_samples, selected_labels = _select_samples(iter_model, unlabeled_data,config=config, strategy=method,
                                                             num_samples=config.SAMPLES_PER_ITERATION)
 
         # Retrieve selected images and labels from the unlabeled dataloader
