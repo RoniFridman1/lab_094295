@@ -40,8 +40,9 @@ def _select_samples(model, unlabeled_data, config, strategy='uncertainty', num_s
         return random(model, unlabeled_data, num_samples, seed=config.seed)
     elif strategy == "pca_kmeans":
         return pca_kmeans(unlabeled_data, num_samples,seed=config.seed, pca_n_components=100)
-
-def uncertainty(model, unlabeled_data,num_samples):
+    elif strategy == 'BUD':
+        return binary_uncertainty_difference(model, unlabeled_data, num_samples)
+def entropy(model, unlabeled_data,num_samples):
     model.eval()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     scores = []
@@ -56,7 +57,7 @@ def uncertainty(model, unlabeled_data,num_samples):
             # Store the labels for later use
             all_labels.extend(labels.numpy())
 
-            entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10),
+            entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-20),
                                         dim=1)  # Add epsilon to avoid log(0)
             scores.extend(entropy_scores.cpu().numpy())
             indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
@@ -68,7 +69,7 @@ def uncertainty(model, unlabeled_data,num_samples):
     selected_labels = [all_labels[idx] for idx in selected_samples]
     return selected_samples.tolist(), selected_labels
 
-def entropy(model, unlabeled_data,num_samples):
+def uncertainty(model, unlabeled_data,num_samples):
     model.eval()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     scores = []
@@ -90,6 +91,31 @@ def entropy(model, unlabeled_data,num_samples):
     indices = np.array(indices)
     sorted_indices = np.argsort(scores)[::-1]  # Sort in descending order
     selected_indices = sorted_indices[:num_samples]  # Select top samples
+    selected_samples = indices[selected_indices]  # Get corresponding sample indices
+    selected_labels = [all_labels[idx] for idx in selected_samples]
+    return selected_samples.tolist(), selected_labels
+
+
+def binary_uncertainty_difference(model, unlabeled_data,num_samples):
+    model.eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    scores = []
+    indices = []
+    all_labels = []
+    with torch.no_grad():
+        for i, (images, labels) in enumerate(unlabeled_data):
+            images = images.to(device)
+            outputs = model(images)  # Get raw logits
+            probabilities = torch.sigmoid(outputs)  # Convert logits to probabilities
+            difference_scores = torch.abs(probabilities[:,0] - probabilities[:,1])
+            # Store the labels for later use
+            all_labels.extend(labels.numpy())
+            scores.extend(difference_scores.cpu().numpy())
+            indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
+    scores = np.array(scores)
+    indices = np.array(indices)
+    sorted_indices = np.argsort(scores)[::-1]  # Sort in descending order
+    selected_indices = sorted_indices[-num_samples:]  # Select top samples
     selected_samples = indices[selected_indices]  # Get corresponding sample indices
     selected_labels = [all_labels[idx] for idx in selected_samples]
     return selected_samples.tolist(), selected_labels
