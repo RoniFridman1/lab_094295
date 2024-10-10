@@ -32,7 +32,7 @@ def _select_samples(model, unlabeled_data, config, strategy='uncertainty', num_s
         selected_samples (list): Indices of selected samples.
         selected_labels (list): Corresponding labels of the selected samples.
     """
-    if strategy == 'uncetainty':
+    if strategy == 'uncertainty':
         return uncertainty(model, unlabeled_data, num_samples)
     elif strategy == 'entropy':
         return entropy(model, unlabeled_data, num_samples)

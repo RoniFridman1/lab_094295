@@ -9,7 +9,7 @@ class Config:
         self.model_name = None
         self.leaning_rate = None
         self.DATA_DIR = "chest_xray"
-        self.SAMPLING_METHODS = ["pca_kmeans","uncertainty", 'random', "entropy"]
+        self.SAMPLING_METHODS = ["uncertainty","pca_kmeans", 'random', "entropy"]
         self.ACTIVE_LEARNING_ITERATIONS = 10
         self.MODEL_TRAINING_EPOCHS = 3
         self.SAMPLES_PER_ITERATION = 25
