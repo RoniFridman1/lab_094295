@@ -11,68 +11,68 @@ import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
+from select_samples_methods import _select_samples
 
-
-def _select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10):
-    """
-    Selects the most informative samples based on the chosen strategy.
-
-    Args:
-        model (torch.nn.Module): Trained model used to select samples.
-        unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
-        strategy (str): Strategy for selecting samples ('uncertainty', 'entropy', 'random').
-        num_samples (int): Number of samples to select.
-
-    Returns:
-        selected_samples (list): Indices of selected samples.
-        selected_labels (list): Corresponding labels of the selected samples.
-    """
-    model.eval()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    scores = []
-    indices = []
-    all_labels = []
-
-    # Compute scores for each sample in the unlabeled data
-    with torch.no_grad():
-        for i, (images, labels) in enumerate(unlabeled_data):
-            images = images.to(device)
-            outputs = model(images)  # Get raw logits
-            probabilities = torch.sigmoid(outputs)  # Convert logits to probabilities
-
-            # Store the labels for later use
-            all_labels.extend(labels.numpy())
-
-            # Uncertainty sampling: select samples with probabilities closest to 0.5
-            if strategy == 'uncertainty':
-                uncertainty_scores = 1 - torch.max(probabilities, dim=1).values  # 1 - max probability
-                scores.extend(uncertainty_scores.cpu().numpy())
-                indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
-
-            # Entropy sampling: select samples with highest entropy
-            elif strategy == 'entropy':
-                entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10), dim=1)  # Add epsilon to avoid log(0)
-                scores.extend(entropy_scores.cpu().numpy())
-                indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
-
-            # Random sampling: select random samples (no scores needed)
-            elif strategy == 'random':
-                indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
-
-    # Convert scores to numpy array for sorting
-    if strategy in ['uncertainty', 'entropy']:
-        scores = np.array(scores)
-        indices = np.array(indices)
-        sorted_indices = np.argsort(scores)[::-1]  # Sort in descending order
-        selected_indices = sorted_indices[:num_samples]  # Select top samples
-        selected_samples = indices[selected_indices]  # Get corresponding sample indices
-    else:
-        # For random strategy, select random indices
-        selected_samples = np.random.choice(indices, size=num_samples, replace=False)
-
-    selected_labels = [all_labels[idx] for idx in selected_samples]
-
-    return selected_samples.tolist(), selected_labels
+# def _select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10):
+#     """
+#     Selects the most informative samples based on the chosen strategy.
+#
+#     Args:
+#         model (torch.nn.Module): Trained model used to select samples.
+#         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
+#         strategy (str): Strategy for selecting samples ('uncertainty', 'entropy', 'random').
+#         num_samples (int): Number of samples to select.
+#
+#     Returns:
+#         selected_samples (list): Indices of selected samples.
+#         selected_labels (list): Corresponding labels of the selected samples.
+#     """
+#     model.eval()
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     scores = []
+#     indices = []
+#     all_labels = []
+#
+#     # Compute scores for each sample in the unlabeled data
+#     with torch.no_grad():
+#         for i, (images, labels) in enumerate(unlabeled_data):
+#             images = images.to(device)
+#             outputs = model(images)  # Get raw logits
+#             probabilities = torch.sigmoid(outputs)  # Convert logits to probabilities
+#
+#             # Store the labels for later use
+#             all_labels.extend(labels.numpy())
+#
+#             # Uncertainty sampling: select samples with probabilities closest to 0.5
+#             if strategy == 'uncertainty':
+#                 uncertainty_scores = 1 - torch.max(probabilities, dim=1).values  # 1 - max probability
+#                 scores.extend(uncertainty_scores.cpu().numpy())
+#                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
+#
+#             # Entropy sampling: select samples with highest entropy
+#             elif strategy == 'entropy':
+#                 entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10), dim=1)  # Add epsilon to avoid log(0)
+#                 scores.extend(entropy_scores.cpu().numpy())
+#                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
+#
+#             # Random sampling: select random samples (no scores needed)
+#             elif strategy == 'random':
+#                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
+#
+#     # Convert scores to numpy array for sorting
+#     if strategy in ['uncertainty', 'entropy']:
+#         scores = np.array(scores)
+#         indices = np.array(indices)
+#         sorted_indices = np.argsort(scores)[::-1]  # Sort in descending order
+#         selected_indices = sorted_indices[:num_samples]  # Select top samples
+#         selected_samples = indices[selected_indices]  # Get corresponding sample indices
+#     else:
+#         # For random strategy, select random indices
+#         selected_samples = np.random.choice(indices, size=num_samples, replace=False)
+#
+#     selected_labels = [all_labels[idx] for idx in selected_samples]
+#
+#     return selected_samples.tolist(), selected_labels
 
 
 def _evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):
