@@ -52,7 +52,7 @@ if __name__ == '__main__':
         transforms.Normalize(mean=0.5, std=0.5)
     ])
 
-    original_data_dir_path = "chest_xray/train"
+    original_data_dir_path = "../chest_xray/train"
     augmented_data_dir_path = "chest_xray/train_augmented"
     train_dataset = AugmentedImageFolder(original_data_dir_path=original_data_dir_path,
                                          augmented_data_dir_path=augmented_data_dir_path,
