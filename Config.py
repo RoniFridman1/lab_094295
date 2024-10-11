@@ -8,8 +8,9 @@ class Config:
         self.start_time = datetime.now()
         self.model_name = None
         self.leaning_rate = None
+        self.MODELS = ["resnet18"]
         self.DATA_DIR = "chest_xray"
-        self.SAMPLING_METHODS = ["BUD","uncertainty","pca_kmeans", 'random', "entropy"]
+        self.SAMPLING_METHODS = ["core_set", "uncertainty", 'random', "entropy"]
         self.ACTIVE_LEARNING_ITERATIONS = 10
         self.MODEL_TRAINING_EPOCHS = 3
         self.SAMPLES_PER_ITERATION = 25
@@ -18,7 +19,7 @@ class Config:
         self.TOTAL_TEST_SAMPLES = 250
         self.BATCH_SIZE = 25
 
-        ## Numbering experiments output folders
+        # Numbering experiments output folders
         os.makedirs("outputs", exist_ok=True)
         expr_folders_list = sorted([int(x.split("_")[-1]) for x in os.listdir("outputs") if "experiment" in x])
         expr_idx = 1 if len(expr_folders_list) == 0 else expr_folders_list[-1] + 1
