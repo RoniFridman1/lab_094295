@@ -2,80 +2,16 @@ import copy
 import time
 import os
 import json
-from tqdm import tqdm
-
-import Config
 from model import train_model
-import numpy as np
 import torch
+from Config import Config
 from torch.utils.data import DataLoader
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
-from select_samples_methods import _select_samples
-
-# def _select_samples(model, unlabeled_data, strategy='uncertainty', num_samples=10):
-#     """
-#     Selects the most informative samples based on the chosen strategy.
-#
-#     Args:
-#         model (torch.nn.Module): Trained model used to select samples.
-#         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
-#         strategy (str): Strategy for selecting samples ('uncertainty', 'entropy', 'random').
-#         num_samples (int): Number of samples to select.
-#
-#     Returns:
-#         selected_samples (list): Indices of selected samples.
-#         selected_labels (list): Corresponding labels of the selected samples.
-#     """
-#     model.eval()
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     scores = []
-#     indices = []
-#     all_labels = []
-#
-#     # Compute scores for each sample in the unlabeled data
-#     with torch.no_grad():
-#         for i, (images, labels) in enumerate(unlabeled_data):
-#             images = images.to(device)
-#             outputs = model(images)  # Get raw logits
-#             probabilities = torch.sigmoid(outputs)  # Convert logits to probabilities
-#
-#             # Store the labels for later use
-#             all_labels.extend(labels.numpy())
-#
-#             # Uncertainty sampling: select samples with probabilities closest to 0.5
-#             if strategy == 'uncertainty':
-#                 uncertainty_scores = 1 - torch.max(probabilities, dim=1).values  # 1 - max probability
-#                 scores.extend(uncertainty_scores.cpu().numpy())
-#                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
-#
-#             # Entropy sampling: select samples with highest entropy
-#             elif strategy == 'entropy':
-#                 entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-10), dim=1)  # Add epsilon to avoid log(0)
-#                 scores.extend(entropy_scores.cpu().numpy())
-#                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
-#
-#             # Random sampling: select random samples (no scores needed)
-#             elif strategy == 'random':
-#                 indices.extend([i * unlabeled_data.batch_size + j for j in range(len(images))])
-#
-#     # Convert scores to numpy array for sorting
-#     if strategy in ['uncertainty', 'entropy']:
-#         scores = np.array(scores)
-#         indices = np.array(indices)
-#         sorted_indices = np.argsort(scores)[::-1]  # Sort in descending order
-#         selected_indices = sorted_indices[:num_samples]  # Select top samples
-#         selected_samples = indices[selected_indices]  # Get corresponding sample indices
-#     else:
-#         # For random strategy, select random indices
-#         selected_samples = np.random.choice(indices, size=num_samples, replace=False)
-#
-#     selected_labels = [all_labels[idx] for idx in selected_samples]
-#
-#     return selected_samples.tolist(), selected_labels
+from select_samples_methods import select_samples
 
 
-def _evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):
+def evaluate_model(model, data_loader, output_dir='output', iteration=None, print_metrics=False):
     """
     Evaluates the model on a given dataset with additional metrics and saves results to files.
 
@@ -84,6 +20,7 @@ def _evaluate_model(model, data_loader, output_dir='output', iteration=None, pri
         data_loader (DataLoader): DataLoader for the dataset.
         output_dir (str): Directory to save output files.
         iteration (int, optional): Iteration number for saving files with unique names.
+        print_metrics (boolean): If to print the metrics or not
 
     Returns:
         dict: A dictionary containing the evaluation metrics.
@@ -134,8 +71,8 @@ def _evaluate_model(model, data_loader, output_dir='output', iteration=None, pri
         "recall": recall,
         "f1_score": f1,
         "roc_auc": roc_auc,
-        "confusion_matrix": conf_matrix.tolist()  # Convert to list for JSON serialization
-    }
+        "confusion_matrix": conf_matrix.tolist()}  # Convert to list for JSON serialization
+
     metrics_filename = f"metrics_iteration_{iteration}.json" if iteration is not None else "metrics.json"
     with open(os.path.join(output_dir, metrics_filename), 'w') as f:
         json.dump(metrics, f, indent=4)
@@ -150,7 +87,7 @@ def _evaluate_model(model, data_loader, output_dir='output', iteration=None, pri
 
 
 def active_learning_loop(model, train_generator, val_generator, test_generator,
-                         unlabeled_data, method, model_name, config, output_dir='output'):
+                         unlabeled_data, method, config, output_dir='output'):
     """
     Main loop for Active Learning.
 
@@ -160,9 +97,9 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
         val_generator (DataLoader): DataLoader for validation data.
         test_generator (DataLoader): DataLoader for test data.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
-        method (str): Strategy for sample selection (e.g., 'uncertainty', 'entropy', 'random').
-        iterations (int): Number of Active Learning iterations.
-        samples_per_iteration (int): Number of samples to query per iteration.
+        method (str): Strategy for sample selection (e.g. 'uncertainty', 'entropy', 'random').
+        config (Config): Experiment configuration.
+        output_dir (str): a directory path where to store the evaluation metrics.
 
     Returns:
         model (torch.nn.Module): The trained model after Active Learning.
@@ -171,8 +108,9 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
     for j in range(config.ACTIVE_LEARNING_ITERATIONS):
         t0 = time.time()
         print(
-            f"Active Learning Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}.\tTrain Samples: {len(train_generator) * train_generator.batch_size}"
-                                +f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
+            f"Active Learning Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}.\tTrain Samples: "
+            f"{len(train_generator) * train_generator.batch_size}"
+            f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
         iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
         if len(unlabeled_data) <= 0:
             break
@@ -181,8 +119,8 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
                                  learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
-        selected_samples, selected_labels = _select_samples(iter_model, unlabeled_data,config=config, strategy=method,
-                                                            num_samples=config.SAMPLES_PER_ITERATION)
+        selected_samples, selected_labels = select_samples(iter_model, unlabeled_data, config=config, strategy=method,
+                                                           num_samples=config.SAMPLES_PER_ITERATION)
 
         # Retrieve selected images and labels from the unlabeled dataloader
         train_generator.dataset.indices = train_generator.dataset.indices + [unlabeled_data.dataset.indices[i]
@@ -202,8 +140,6 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
         unlabeled_data = DataLoader(updated_unlabeled_data, batch_size=unlabeled_data.batch_size, shuffle=False)
 
         # Evaluate the model
-        metrics.append(_evaluate_model(iter_model, test_generator, iteration=j, output_dir=output_dir))
+        metrics.append(evaluate_model(iter_model, test_generator, iteration=j, output_dir=output_dir))
         print(f"Time of Iteration: {round(time.time()-t0)} sec")
     return metrics
-
-
