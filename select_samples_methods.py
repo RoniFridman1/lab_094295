@@ -1,19 +1,19 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import torch
 from torch.utils.data import DataLoader
-from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.cluster import KMeans
 
-def _select_samples(model, unlabeled_data, config, strategy='uncertainty', num_samples=10):
+
+def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_samples=10):
     """
     Selects the most informative samples based on the chosen strategy.
 
     Args:
         model (torch.nn.Module): Trained model used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
-        strategy (str): Strategy for selecting samples ('uncertainty', 'entropy', 'random').
+        strategy (str): Strategy for selecting samples ('_uncertainty_sampling', '_entropy_sampling', '_random_sampling').
         num_samples (int): Number of samples to select.
 
     Returns:
@@ -21,24 +21,26 @@ def _select_samples(model, unlabeled_data, config, strategy='uncertainty', num_s
         selected_labels (list): Corresponding labels of the selected samples.
     """
     if strategy == 'uncertainty':
-        return uncertainty(model, unlabeled_data, num_samples)
+        return _uncertainty_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'entropy':
-        return entropy(model, unlabeled_data, num_samples)
+        return _entropy_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'random':
-        return random(model, unlabeled_data, num_samples, seed=config.seed)
+        return _random_sampling(model, unlabeled_data, num_samples, seed=config.seed)
     elif strategy == "pca_kmeans":
-        return pca_kmeans(unlabeled_data, num_samples, seed=config.seed, pca_n_components=100)
+        return _pca_kmeans_sampling(unlabeled_data, num_samples, seed=config.seed, pca_n_components=100)
     elif strategy == 'bald':
-        return bald(model, unlabeled_data, num_samples, mc_iterations=config.mc_iterations)
+        return _bald_sampling(model, unlabeled_data, num_samples, mc_iterations=config.mc_iterations)
     elif strategy == 'margin':
-        return margin_sampling(model, unlabeled_data, num_samples)
+        return _margin_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'core_set':
-        return core_set(model, unlabeled_data, num_samples)
+        return _core_set_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'dpp':
-        return dpp_sampling(model, unlabeled_data, num_samples)
+        return _dpp_sampling(model, unlabeled_data, num_samples)
     else:
         raise ValueError(f"Strategy {strategy} not recognized.")
-def entropy(model, unlabeled_data,num_samples):
+
+
+def _entropy_sampling(model, unlabeled_data, num_samples):
     model.eval()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     scores = []
@@ -49,10 +51,7 @@ def entropy(model, unlabeled_data,num_samples):
             images = images.to(device)
             outputs = model(images)  # Get raw logits
             probabilities = torch.sigmoid(outputs)  # Convert logits to probabilities
-
-            # Store the labels for later use
-            all_labels.extend(labels.numpy())
-
+            all_labels.extend(labels.numpy())  # Store the labels for later use
             entropy_scores = -torch.sum(probabilities * torch.log(probabilities + 1e-20),
                                         dim=1)  # Add epsilon to avoid log(0)
             scores.extend(entropy_scores.cpu().numpy())
@@ -65,7 +64,8 @@ def entropy(model, unlabeled_data,num_samples):
     selected_labels = [all_labels[idx] for idx in selected_samples]
     return selected_samples.tolist(), selected_labels
 
-def uncertainty(model, unlabeled_data,num_samples):
+
+def _uncertainty_sampling(model, unlabeled_data, num_samples):
     model.eval()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     scores = []
@@ -92,7 +92,7 @@ def uncertainty(model, unlabeled_data,num_samples):
     return selected_samples.tolist(), selected_labels
 
 
-def random(model, unlabeled_data,num_samples, seed=42):
+def _random_sampling(model, unlabeled_data, num_samples, seed=42):
     model.eval()
     indices = []
     all_labels = []
@@ -106,8 +106,10 @@ def random(model, unlabeled_data,num_samples, seed=42):
     selected_labels = [all_labels[idx] for idx in selected_samples]
     return selected_samples.tolist(), selected_labels
 
-# TODO: pca_kmeans and core set are the same - I think that core_set is the way it should be but need to do tests.
-def pca_kmeans(unlabeled_train_data, num_samples,seed, pca_n_components=100):
+
+# todo:_pca_kmeans_sampling and core set are the same - I think that _core_set_sampling is the way it should be but need
+#  to do tests.
+def _pca_kmeans_sampling(unlabeled_train_data, num_samples, seed, pca_n_components=100):
     unlabeled_data = []
     indices = []
     all_labels = []
@@ -117,7 +119,6 @@ def pca_kmeans(unlabeled_train_data, num_samples,seed, pca_n_components=100):
         all_labels.extend(labels.numpy())
         indices.extend([i * unlabeled_train_data.batch_size + j for j in range(len(images))])
 
-
     unlabeled_data = np.array(unlabeled_data)
     pca = PCA(n_components=pca_n_components)
     pca_result = pca.fit_transform(unlabeled_data.reshape(len(unlabeled_data), -1))
@@ -125,7 +126,6 @@ def pca_kmeans(unlabeled_train_data, num_samples,seed, pca_n_components=100):
     print(f"Sum of explained variance in percent = {round(sum(explained_varience)*100,2)}")
     n_clusters = 2  # sick \ healthy
     kmeans = KMeans(n_clusters=n_clusters, random_state=seed)
-    cluster_labels = kmeans.fit_predict(pca_result)
     centroids = kmeans.cluster_centers_
 
     # Calculate distances from each data point to the centroids
@@ -138,7 +138,8 @@ def pca_kmeans(unlabeled_train_data, num_samples,seed, pca_n_components=100):
     selected_labels = [all_labels[idx] for idx in selected_samples]
     return selected_samples.tolist(), selected_labels
 
-def bald(model, unlabeled_data, num_samples, mc_iterations=10):
+
+def _bald_sampling(model, unlabeled_data, num_samples, mc_iterations=10):
     """
     Selects samples based on Bayesian Active Learning by Disagreement (BALD).
 
@@ -146,7 +147,7 @@ def bald(model, unlabeled_data, num_samples, mc_iterations=10):
         model (torch.nn.Module): Trained model used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
-        mc_iterations (int): Number of Monte Carlo iterations for uncertainty estimation.
+        mc_iterations (int): Number of Monte Carlo iterations for _uncertainty_sampling estimation.
 
     Returns:
         selected_samples (list): Indices of selected samples.
@@ -195,7 +196,8 @@ def bald(model, unlabeled_data, num_samples, mc_iterations=10):
 
     return selected_samples.tolist(), selected_labels
 
-def core_set(model, unlabeled_data, num_samples, pca_n_components=100):
+
+def _core_set_sampling(model, unlabeled_data, num_samples, pca_n_components=100):
     """
     Selects samples based on Core-Set selection strategy using k-means clustering.
 
@@ -220,7 +222,6 @@ def core_set(model, unlabeled_data, num_samples, pca_n_components=100):
     with torch.no_grad():
         for batch_idx, (images, labels) in enumerate(unlabeled_data):
             images = images.to(device)
-            outputs = model(images)
             # Assume the feature extractor is up to the penultimate layer
             # Modify this line based on your model's architecture
             if hasattr(model, 'fc'):
@@ -242,8 +243,6 @@ def core_set(model, unlabeled_data, num_samples, pca_n_components=100):
     kmeans = KMeans(n_clusters=num_samples, random_state=42)
     kmeans.fit(reduced_features)
     cluster_centers = kmeans.cluster_centers_
-    distances = kmeans.transform(reduced_features)
-    closest_indices = np.argmin(distances, axis=1)
 
     # Select one sample per cluster
     selected_samples = []
@@ -256,7 +255,8 @@ def core_set(model, unlabeled_data, num_samples, pca_n_components=100):
 
     return selected_samples, selected_labels
 
-def margin_sampling(model, unlabeled_data, num_samples):
+
+def _margin_sampling(model, unlabeled_data, num_samples):
     """
     Selects samples based on Margin Sampling strategy.
 
@@ -292,7 +292,7 @@ def margin_sampling(model, unlabeled_data, num_samples):
     margins = np.array(margins)
     all_indices = np.array(all_indices)
 
-    # Select samples with smallest margins (highest uncertainty)
+    # Select samples with smallest margins (highest _uncertainty_sampling)
     sorted_indices = np.argsort(margins)
     selected_indices = sorted_indices[:num_samples]
     selected_samples = all_indices[selected_indices]
@@ -300,7 +300,8 @@ def margin_sampling(model, unlabeled_data, num_samples):
 
     return selected_samples.tolist(), selected_labels
 
-def dpp_sampling(model, unlabeled_data, num_samples, similarity_threshold=0.5):
+
+def _dpp_sampling(model, unlabeled_data, num_samples, similarity_threshold=0.5):
     """
     Selects samples based on Determinantal Point Processes (DPP) for diversity.
 
