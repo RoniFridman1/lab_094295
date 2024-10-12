@@ -10,15 +10,15 @@ class Config:
         self.leaning_rate = None
         self.MODELS = ["vgg16"]
         self.DATA_DIR = "chest_xray"
-        self.SAMPLING_METHODS = ["core_set", "uncertainty", 'random', "entropy"]
-        self.ACTIVE_LEARNING_ITERATIONS = 10
+        self.SAMPLING_METHODS = ["core_set"]
+        self.ACTIVE_LEARNING_ITERATIONS = 5
         self.MODEL_TRAINING_EPOCHS = 3
-        self.SAMPLES_PER_ITERATION = 25
-        self.TOTAL_TRAINING_SAMPLES = 1000
+        self.SAMPLES_PER_ITERATION = 10
+        self.TOTAL_TRAINING_SAMPLES = 200
         self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
         self.TOTAL_TEST_SAMPLES = 250
-        self.BATCH_SIZE = 25
-        self.PCA_N_COMPONENTS = 10
+        self.BATCH_SIZE = 10
+        self.PCA_N_COMPONENTS = 3
 
         # Numbering experiments output folders
         os.makedirs("outputs", exist_ok=True)
