@@ -205,7 +205,7 @@ def _core_set_sampling(model, unlabeled_data, num_samples, config):
         model (torch.nn.Module): Trained model used to extract features.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
-        pca_n_components (int): Number of PCA components for dimensionality reduction.
+        config (Config): the experiment's configuration.
 
     Returns:
         selected_samples (list): Indices of selected samples.
@@ -218,18 +218,22 @@ def _core_set_sampling(model, unlabeled_data, num_samples, config):
     features = []
     all_indices = []
     all_labels = []
-
     with torch.no_grad():
         for batch_idx, (images, labels) in enumerate(unlabeled_data):
             images = images.to(device)
-            # Assume the feature extractor is up to the penultimate layer
-            # Modify this line based on your model's architecture
-            if hasattr(model, 'fc'):
-                features_batch = model.fc.weight.data.cpu().numpy()
-            else:
-                # For models like VGG, modify accordingly
-                features_batch = model.classifier[-1][1].weight.data.cpu()
-            features.append(features_batch.cpu().numpy())
+            # Process one image at a time
+            for i in range(images.size(0)):
+                image = images[i].unsqueeze(0)  # Create a batch of size 1
+                _ = model(image)
+
+                # Assume the feature extractor is up to the penultimate layer
+                # Modify this line based on your model's architecture
+                if hasattr(model, 'fc'):
+                    features_batch = model.fc.weight.data.cpu().numpy()
+                else:
+                    # For models like VGG, modify accordingly
+                    features_batch = model.classifier[-1][1].weight.data.cpu().numpy()
+                features.append(features_batch)
             all_indices.extend([batch_idx * unlabeled_data.batch_size + j for j in range(images.size(0))])
             all_labels.extend(labels.numpy())
 
