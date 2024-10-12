@@ -18,8 +18,7 @@ def _plot_learning_curves(metrics_history, model_name, sampling_method, output_d
     # Plot Accuracy
     plt.figure(figsize=(10, 6))
     plt.plot(iterations, metrics_history['accuracy'], label='Accuracy', marker='o')
-    f1_scores_scale_0_100 = [x*100 for x in metrics_history['f1_score']]
-    plt.plot(iterations, f1_scores_scale_0_100, label='F1 Score', marker='o')
+    plt.plot(iterations, metrics_history['f1_score'], label='F1 Score', marker='o')
     # plt.plot(iterations, metrics_history['roc_auc']*100, label="ROC AUC", marker='o')
     plt.title(f'Learning Curves for {model_name} using {sampling_method}')
     plt.xlabel('Iteration')
@@ -81,7 +80,7 @@ def _create_summary_table(results, output_dir):
                 data.append(row)
 
     df = pd.DataFrame(data)
-    df.to_csv(os.path.join(output_dir, "summary_table_csv"))
+    df.to_csv(os.path.join(output_dir, "summary_table.csv"))
     return df
 
 

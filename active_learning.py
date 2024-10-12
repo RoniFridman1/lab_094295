@@ -52,7 +52,7 @@ def evaluate_model(model, data_loader, output_dir='output', iteration=None, prin
             correct += (predicted == labels).sum().item()
 
     # Calculate metrics
-    accuracy = 100 * correct / total
+    accuracy = correct / total
     precision, recall, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='binary')
     roc_auc = roc_auc_score(all_labels, all_probs)
     conf_matrix = confusion_matrix(all_labels, all_preds)
