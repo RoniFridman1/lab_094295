@@ -108,9 +108,9 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
     for j in range(config.ACTIVE_LEARNING_ITERATIONS):
         t0 = time.time()
         print(
-            f"Active Learning Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}.\tTrain Samples: "
-            f"{len(train_generator) * train_generator.batch_size}"
-            f"\tUnlabeled: {len(unlabeled_data)* unlabeled_data.batch_size}")
+            f"Active Learning Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}."
+            f"\tTrain Samples: {(j+1) * config.SAMPLES_PER_ITERATION}"
+            f"\tUnlabeled: {config.TOTAL_TRAINING_SAMPLES - (j+1) * config.SAMPLES_PER_ITERATION}")
         iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
         if len(unlabeled_data) <= 0:
             break
