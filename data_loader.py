@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 
-def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_split=(0.25,0.75),
+def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_split=(0.25, 0.75),
               total_test_samples=100, seed=42):
     """
     Loads and preprocesses the X-ray image dataset using PyTorch's DataLoader.
@@ -16,6 +16,7 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
         batch_size (int): Batch size for training.
         labeled_unlabeled_split (tuple): the ratio between labeled (1st in tuple) and unlabeled (2nd in tuple) samples
         total_test_samples (int): Number of train samples including labeled and the pool of unlabeled samples
+        seed (int) random seed
 
     Returns:
         train_loader_labeled, train_loader_unlabeled, val_loader, test_loader: Data loaders for training, validation,
@@ -24,7 +25,7 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
     torch.manual_seed(seed)
     # Resize images to 224x224 pixels -> Convert to PyTorch tensors. -> Normalizes to a standard range
     transform = transforms.Compose([
-        transforms.Resize((312,312)),
+        transforms.Resize((312, 312)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])

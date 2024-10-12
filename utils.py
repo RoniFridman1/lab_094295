@@ -1,10 +1,9 @@
 import os.path
-from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def plot_learning_curves(metrics_history, model_name, sampling_method,output_dir):
+def _plot_learning_curves(metrics_history, model_name, sampling_method, output_dir):
     """
     Plots learning curves for a given model and sampling method.
 
@@ -12,13 +11,14 @@ def plot_learning_curves(metrics_history, model_name, sampling_method,output_dir
         metrics_history (dict): Dictionary containing lists of metrics over iterations.
         model_name (str): Name of the model.
         sampling_method (str): Sampling method used.
+        output_dir (str): path for the directory where to save the output plot
     """
     iterations = range(1, len(metrics_history['accuracy']) + 1)
 
     # Plot Accuracy
     plt.figure(figsize=(10, 6))
     plt.plot(iterations, metrics_history['accuracy'], label='Accuracy', marker='o')
-    plt.plot(iterations, metrics_history['f1_score']*100, label='F1 Score', marker='o')
+    plt.plot(iterations, metrics_history['f1_score'], label='F1 Score', marker='o')
     # plt.plot(iterations, metrics_history['roc_auc']*100, label="ROC AUC", marker='o')
     plt.title(f'Learning Curves for {model_name} using {sampling_method}')
     plt.xlabel('Iteration')
@@ -29,7 +29,7 @@ def plot_learning_curves(metrics_history, model_name, sampling_method,output_dir
     plt.close()
 
 
-def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
+def _plot_roc_curves(roc_auc_scores, model_name, sampling_method, output_dir):
     """
     Plots ROC curves for different models or sampling methods.
 
@@ -37,6 +37,7 @@ def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
         roc_auc_scores (dict): Dictionary containing ROC-AUC scores over iterations.
         model_name (str): Name of the model.
         sampling_method (str): Sampling method used.
+        output_dir (str): path for the directory where to save the output plot
     """
     plt.figure(figsize=(10, 6))
     iterations = range(1, len(roc_auc_scores) + 1)
@@ -51,12 +52,13 @@ def plot_roc_curves(roc_auc_scores, model_name, sampling_method,output_dir):
     plt.close()
 
 
-def create_summary_table(results, output_dir):
+def _create_summary_table(results, output_dir):
     """
     Creates a summary table comparing models and sampling methods.
 
     Args:
         results (dict): Dictionary containing results for all models and sampling methods.
+        output_dir (str): path for the directory where to save the summary table as csv file.
 
     Returns:
         pd.DataFrame: Summary table as a DataFrame.
@@ -78,36 +80,11 @@ def create_summary_table(results, output_dir):
                 data.append(row)
 
     df = pd.DataFrame(data)
-    df.to_csv(os.path.join(output_dir,"summary_table_csv"))
+    df.to_csv(os.path.join(output_dir, "summary_table.csv"))
     return df
 
 
-def visualize_results(results, output_dir):
-    """
-    Visualizes the results using various plots and tables.
-
-    Args:
-        results (dict): Dictionary containing results for all models and sampling methods.
-    """
-    for model_name, sampling_results in results.items():
-        for sampling_method, metrics in sampling_results.items():
-            plot_learning_curves(metrics, model_name, sampling_method,output_dir)
-            plot_roc_curves(metrics['roc_auc'], model_name, sampling_method,output_dir)
-
-    summary_table = create_summary_table(results,output_dir)
-    plot_summary_table(summary_table,os.path.join(output_dir,"summary"))
-    return summary_table
-def process_output_text(path):
-    output_path = os.path.join(Path(path).parent, os.path.basename(path)[:-4]+"_processed.txt")
-    lines = open(path,"r", encoding='utf-8').readlines()
-    new_lines = [l for l in lines if "|" not in l]
-    with open(output_path,'w+') as out:
-        for l in new_lines:
-            out.write(l)
-        out.close()
-
-
-def plot_summary_table(df, output_path='output/summary'):
+def _plot_summary_table(df, output_path='output/summary'):
     # Ensure the save_location directory exists
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -138,3 +115,20 @@ def plot_summary_table(df, output_path='output/summary'):
         plt.close()
 
     print(f"Plots saved at {output_path}")
+
+
+def visualize_results(results, output_dir):
+    """
+    Visualizes the results using various plots and tables.
+
+    Args:
+        results (dict): Dictionary containing results for all models and sampling methods.
+    """
+    for model_name, sampling_results in results.items():
+        for sampling_method, metrics in sampling_results.items():
+            _plot_learning_curves(metrics, model_name, sampling_method, output_dir)
+            _plot_roc_curves(metrics['roc_auc'], model_name, sampling_method, output_dir)
+
+    summary_table = _create_summary_table(results, output_dir)
+    _plot_summary_table(summary_table, os.path.join(output_dir, "summary"))
+    return summary_table

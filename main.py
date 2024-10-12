@@ -1,5 +1,6 @@
 from experiment import run_experiment
+import warnings
+warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
-    MODELS = ["resnet18"]
-    run_experiment(MODELS)
+    run_experiment()

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from model_downloader import download_model
 
@@ -19,21 +18,16 @@ def initialize_model(model_name: str):
 
     # Modify the final layer for binary classification (Pneumonia vs. Normal)
     if model_name == 'resnet18':
-        # ResNet18
         num_features = model.fc.in_features
         model.fc = nn.Sequential(
             nn.Dropout(0.5),
-            nn.Linear(num_features, 1)
-        )
-        # model.fc = nn.Linear(num_features, 1)  # Update the fully connected layer for binary classification
+            nn.Linear(num_features, 1))  # Update the last layer in classifier for binary classification
 
     elif model_name == 'vgg16':
-        # VGG16
         num_features = model.classifier[-1].in_features
         model.classifier[-1] = nn.Sequential(
             nn.Dropout(0.5),
-            nn.Linear(num_features, 1)
-        )  # Update the last layer in classifier for binary classification
+            nn.Linear(num_features, 1))  # Update the last layer in classifier for binary classification
 
     return model
 
@@ -81,13 +75,14 @@ def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-4):
     return model
 
 
-def evaluate_model(model, val_loader, train_loader):
+def evaluate_model(model, train_loader, val_loader):
     """
     Evaluates the model on a given dataset.
 
     Args:
         model (torch.nn.Module): The model to evaluate.
-        data_loader (DataLoader): DataLoader for the dataset.
+        train_loader (DataLoader): DataLoader for the train dataset
+        val_loader (DataLoader): DataLoader for the validation dataset.
 
     Returns:
         None
@@ -113,6 +108,7 @@ def evaluate_model(model, val_loader, train_loader):
             predicted = (torch.sigmoid(outputs) > 0.5).float()
             total_train += labels.size(0)
             correct_train += (predicted == labels).sum().item()
+
     accuracy_val = 100 * correct_val / total_val
     accuracy_train = 100 * correct_train / total_train
     print(f"Val Accuracy: {accuracy_val:.2f}%")
