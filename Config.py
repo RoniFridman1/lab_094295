@@ -8,7 +8,7 @@ class Config:
         self.start_time = datetime.now()
         self.model_name = None
         self.leaning_rate = None
-        self.MODELS = ["resnet18"]
+        self.MODELS = ["vgg16"]
         self.DATA_DIR = "chest_xray"
         self.SAMPLING_METHODS = ["core_set", "uncertainty", 'random', "entropy"]
         self.ACTIVE_LEARNING_ITERATIONS = 10

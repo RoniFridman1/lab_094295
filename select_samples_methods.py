@@ -197,7 +197,7 @@ def _bald_sampling(model, unlabeled_data, num_samples, mc_iterations=10):
     return selected_samples.tolist(), selected_labels
 
 
-def _core_set_sampling(model, unlabeled_data, num_samples, pca_n_components=100):
+def _core_set_sampling(model, unlabeled_data, num_samples, pca_n_components=10):
     """
     Selects samples based on Core-Set selection strategy using k-means clustering.
 
@@ -228,7 +228,7 @@ def _core_set_sampling(model, unlabeled_data, num_samples, pca_n_components=100)
                 features_batch = model.fc.weight.data.cpu().numpy()
             else:
                 # For models like VGG, modify accordingly
-                features_batch = model.classifier[-1].weight.data.cpu().numpy()
+                features_batch = model.classifier[-1][1].weight.data.cpu()
             features.append(features_batch.cpu().numpy())
             all_indices.extend([batch_idx * unlabeled_data.batch_size + j for j in range(images.size(0))])
             all_labels.extend(labels.numpy())
