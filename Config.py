@@ -18,6 +18,7 @@ class Config:
         self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
         self.TOTAL_TEST_SAMPLES = 250
         self.BATCH_SIZE = 25
+        self.PCA_N_COMPONENTS = 10
 
         # Numbering experiments output folders
         os.makedirs("outputs", exist_ok=True)

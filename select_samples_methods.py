@@ -33,7 +33,7 @@ def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_sa
     elif strategy == 'margin':
         return _margin_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'core_set':
-        return _core_set_sampling(model, unlabeled_data, num_samples)
+        return _core_set_sampling(model, unlabeled_data, num_samples, config)
     elif strategy == 'dpp':
         return _dpp_sampling(model, unlabeled_data, num_samples)
     else:
@@ -197,7 +197,7 @@ def _bald_sampling(model, unlabeled_data, num_samples, mc_iterations=10):
     return selected_samples.tolist(), selected_labels
 
 
-def _core_set_sampling(model, unlabeled_data, num_samples, pca_n_components=10):
+def _core_set_sampling(model, unlabeled_data, num_samples, config):
     """
     Selects samples based on Core-Set selection strategy using k-means clustering.
 
@@ -236,7 +236,7 @@ def _core_set_sampling(model, unlabeled_data, num_samples, pca_n_components=10):
     features = np.vstack(features)
 
     # Apply PCA for dimensionality reduction
-    pca = PCA(n_components=pca_n_components)
+    pca = PCA(n_components=config.PCA_N_COMPONENTS)
     reduced_features = pca.fit_transform(features)
 
     # Perform k-means clustering
