@@ -1,115 +1,201 @@
-import torch
 import torch.nn as nn
 import torch.optim as optim
-from model_downloader import download_model
+import torchvision.models as models
+import os
+import json
+import torch
+from torch.utils.data import DataLoader
+from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 
-def initialize_model(model_name: str):
-    """
-    Initializes a pre-trained model downloaded via `model_downloader.py`.
-
-    Args:
-        model_name (str): The name of the model to initialize (e.g., 'resnet18', 'vgg16').
-
-    Returns:
-        model (torch.nn.Module): The initialized model.
-    """
-    model = download_model(model_name)
-
-    # Modify the final layer for binary classification (Pneumonia vs. Normal)
-    if model_name == 'resnet18':
-        num_features = model.fc.in_features
-        model.fc = nn.Sequential(
-            nn.Dropout(0.5),
-            nn.Linear(num_features, 1))  # Update the last layer in classifier for binary classification
-
-    elif model_name == 'vgg16':
+class ActiveLearningVgg16:
+    def __init__(self):
+        """ Initializes a pre-trained vgg16 model downloaded via `_load_or_download_vgg16`. """
+        model = self._load_or_download_vgg16()
         num_features = model.classifier[-1].in_features
         model.classifier[-1] = nn.Sequential(
             nn.Dropout(0.5),
             nn.Linear(num_features, 1))  # Update the last layer in classifier for binary classification
+        self.vgg16 = model
 
-    return model
+    def _load_or_download_vgg16(self, model_dir: str = "models"):
+        """
+        Downloads a pre-trained vgg16 model if not already present in the 'models' directory.
 
+        Args:
+            model_dir (str): Directory to store the downloaded models.
 
-def train_model(model, train_loader, val_loader, epochs=10, learning_rate=1e-4):
-    """
-    Trains the model on the provided data loaders.
+        Returns:
+            model (torch.nn.Module): The requested pre-trained model.
+        """
+        model_path = os.path.join(model_dir, "vgg16.pth")
 
-    Args:
-        model (torch.nn.Module): The model to train.
-        train_loader (DataLoader): DataLoader for training data.
-        val_loader (DataLoader): DataLoader for validation data.
-        epochs (int): Number of epochs to train.
-        learning_rate (float): Learning rate for optimizer.
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
 
-    Returns:
-        model (torch.nn.Module): Trained model.
-    """
+        # Check if the vgg16 already exists
+        if not os.path.exists(model_path):
+            print(f"Downloading vgg16 vgg16...")
+            model = models.vgg16(pretrained=True)
+            torch.save(model.state_dict(), model_path)
 
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        else:
+            print(f"Loading vgg16 vgg16 from {model_path}...")
+            model = models.vgg16()
+            model.load_state_dict(torch.load(model_path))
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+        return model
 
-    for epoch in range(epochs):
-        model.train()
-        running_loss = 0.0
-        for images, labels in train_loader:
-            images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
-            optimizer.zero_grad()
+    def _evaluate(self, train_loader, val_loader):
+        """
+        Evaluates the model on a given dataset.
 
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+        Args:
+            train_loader (DataLoader): DataLoader for the train dataset
+            val_loader (DataLoader): DataLoader for the validation dataset.
 
-            running_loss += loss.item()
+        Returns:
+            None
+        """
+        self.vgg16.eval()
+        correct_val = 0
+        total_val = 0
+        total_train = 0
+        correct_train = 0
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {running_loss / len(train_loader):.4f}")
+        with torch.no_grad():
+            for images, labels in train_loader:
+                images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
+                outputs = self.vgg16(images)
+                predicted = (torch.sigmoid(outputs) > 0.5).float()
+                total_train += labels.size(0)
+                correct_train += (predicted == labels).sum().item()
 
-        # Validation step
-        evaluate_model(model, val_loader, train_loader)
+            for images, labels in val_loader:
+                images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
+                outputs = self.vgg16(images)
+                predicted = (torch.sigmoid(outputs) > 0.5).float()
+                total_val += labels.size(0)
+                correct_val += (predicted == labels).sum().item()
 
-    return model
+        accuracy_train = 100 * correct_train / total_train
+        accuracy_val = 100 * correct_val / total_val
+        print(f"Train Accuracy: {accuracy_train:.2f}%")
+        print(f"Val Accuracy: {accuracy_val:.2f}%")
 
+    def train(self, train_loader, val_loader, epochs=10, learning_rate=1e-4):
+        """
+        Trains the vgg16 model on the provided data loaders.
 
-def evaluate_model(model, train_loader, val_loader):
-    """
-    Evaluates the model on a given dataset.
+        Args:
+            train_loader (DataLoader): DataLoader for training data.
+            val_loader (DataLoader): DataLoader for validation data.
+            epochs (int): Number of epochs to train.
+            learning_rate (float): Learning rate for optimizer.
 
-    Args:
-        model (torch.nn.Module): The model to evaluate.
-        train_loader (DataLoader): DataLoader for the train dataset
-        val_loader (DataLoader): DataLoader for the validation dataset.
+        Returns:
+            vgg16 (torch.nn.Module): Trained vgg16.
+        """
 
-    Returns:
-        None
-    """
-    model.eval()
-    correct_val = 0
-    total_val = 0
-    total_train = 0
-    correct_train = 0
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        criterion = nn.BCEWithLogitsLoss()
+        optimizer = optim.Adam(self.vgg16.parameters(), lr=learning_rate)
 
-    with torch.no_grad():
-        for images, labels in val_loader:
-            images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
-            outputs = model(images)
-            predicted = (torch.sigmoid(outputs) > 0.5).float()
-            total_val += labels.size(0)
-            correct_val += (predicted == labels).sum().item()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.vgg16.to(device)
 
-        for images, labels in train_loader:
-            images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
-            outputs = model(images)
-            predicted = (torch.sigmoid(outputs) > 0.5).float()
-            total_train += labels.size(0)
-            correct_train += (predicted == labels).sum().item()
+        for epoch in range(epochs):
+            self.vgg16.train()
+            running_loss = 0.0
+            for images, labels in train_loader:
+                images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
+                optimizer.zero_grad()
 
-    accuracy_val = 100 * correct_val / total_val
-    accuracy_train = 100 * correct_train / total_train
-    print(f"Val Accuracy: {accuracy_val:.2f}%")
-    print(f"Train Accuracy: {accuracy_train:.2f}%")
+                outputs = self.vgg16(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+
+            print(f"Epoch [{epoch + 1}/{epochs}], Loss: {running_loss / len(train_loader):.4f}")
+
+            # Validation step
+            self._evaluate(train_loader, val_loader)
+
+        return self
+
+    def calculate_metrics(self, data_loader, output_dir='output', iteration=None, print_metrics=False):
+        """
+        Evaluates the vgg16 on a given dataset with additional metrics and saves results to files.
+
+        Args:
+            model (torch.nn.Module): The vgg16 to evaluate.
+            data_loader (DataLoader): DataLoader for the dataset.
+            output_dir (str): Directory to save output files.
+            iteration (int, optional): Iteration number for saving files with unique names.
+            print_metrics (boolean): If to print the metrics or not
+
+        Returns:
+            dict: A dictionary containing the evaluation metrics.
+        """
+        # Ensure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+
+        self.vgg16.eval()
+        correct = 0
+        total = 0
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        all_labels = []
+        all_preds = []
+        all_probs = []
+
+        with torch.no_grad():
+            for images, labels in data_loader:
+                images, labels = images.to(device), labels.float().unsqueeze(1).to(device)
+                outputs = self.vgg16(images)
+                probs = torch.sigmoid(outputs)
+                predicted = (probs > 0.5).float()
+
+                all_labels.extend(labels.cpu().numpy())
+                all_preds.extend(predicted.cpu().numpy())
+                all_probs.extend(probs.cpu().numpy())
+
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+        # Calculate metrics
+        accuracy = correct / total
+        precision, recall, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='binary')
+        roc_auc = roc_auc_score(all_labels, all_probs)
+        conf_matrix = confusion_matrix(all_labels, all_preds)
+
+        if print_metrics:
+            print(f"Test Accuracy: {accuracy:.2f}%")
+            print(f"Precision: {precision:.2f}")
+            print(f"Recall: {recall:.2f}")
+            print(f"F1-Score: {f1:.2f}")
+            print(f"ROC-AUC: {roc_auc:.2f}")
+
+        # Save metrics to a JSON file
+        metrics = {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1_score": f1,
+            "roc_auc": roc_auc,
+            "confusion_matrix": conf_matrix.tolist()}  # Convert to list for JSON serialization
+
+        metrics_filename = f"metrics_iteration_{iteration}.json" if iteration is not None else "metrics.json"
+        with open(os.path.join(output_dir, metrics_filename), 'w') as f:
+            json.dump(metrics, f, indent=4)
+
+        # Save confusion matrix as an image
+        ConfusionMatrixDisplay(conf_matrix).plot()
+        conf_matrix_filename = f"confusion_matrix_iteration_{iteration}.png" if iteration is not None else "confusion_matrix.png"
+        plt.savefig(os.path.join(output_dir, conf_matrix_filename))
+        plt.close()  # Close the plot to avoid display overlap in loops
+
+        return metrics

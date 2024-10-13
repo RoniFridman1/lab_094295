@@ -10,11 +10,11 @@ class Config:
         self.leaning_rate = None
         self.MODELS = ["vgg16"]
         self.DATA_DIR = "chest_xray"
-        self.SAMPLING_METHODS = ["core_set"]
-        self.ACTIVE_LEARNING_ITERATIONS = 10
-        self.MODEL_TRAINING_EPOCHS = 3
-        self.SAMPLES_PER_ITERATION = 100
-        self.TOTAL_TRAINING_SAMPLES = 2000
+        self.SAMPLING_METHODS = ["random"]
+        self.ACTIVE_LEARNING_ITERATIONS = 5
+        self.MODEL_TRAINING_EPOCHS = 1
+        self.SAMPLES_PER_ITERATION = 10
+        self.TOTAL_TRAINING_SAMPLES = 200
         self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
         self.TOTAL_TEST_SAMPLES = 250
         self.BATCH_SIZE = 25
@@ -38,10 +38,15 @@ class Config:
             self.leaning_rate = 1e-6
 
     def write_config_to_file(self):
-        conf_str = f"Start time={self.start_time}\nSeed={self.seed}\nSAMPLING_METHODS={self.SAMPLING_METHODS}\n"+\
-                   f"ACTIVE_LEARNING_ITERATIONS={self.ACTIVE_LEARNING_ITERATIONS}\nMODEL_TRAINING_EPOCHS={self.MODEL_TRAINING_EPOCHS}\n" + \
-                   f"SAMPLES_PER_ITERATION={self.SAMPLES_PER_ITERATION}\nTOTAL_TRAINING_SAMPLES={self.TOTAL_TRAINING_SAMPLES}\n" + \
-                   f"TRAIN_LABELED_UNLABELED_RATIO={self.TRAIN_LABELED_UNLABELED_RATIO}\nTOTAL_TEST_SAMPLES={self.TOTAL_TEST_SAMPLES}\nBATCH_SIZE={self.BATCH_SIZE}"
+        conf_str = f"Start time={self.start_time}\nSeed={self.seed}\n" \
+                   f"SAMPLING_METHODS={self.SAMPLING_METHODS}\n" + \
+                   f"ACTIVE_LEARNING_ITERATIONS={self.ACTIVE_LEARNING_ITERATIONS}\n" \
+                   f"MODEL_TRAINING_EPOCHS={self.MODEL_TRAINING_EPOCHS}\n" + \
+                   f"SAMPLES_PER_ITERATION={self.SAMPLES_PER_ITERATION}\n" \
+                   f"TOTAL_TRAINING_SAMPLES={self.TOTAL_TRAINING_SAMPLES}\n" + \
+                   f"TRAIN_LABELED_UNLABELED_RATIO={self.TRAIN_LABELED_UNLABELED_RATIO}\n" \
+                   f"TOTAL_TEST_SAMPLES={self.TOTAL_TEST_SAMPLES}\n" \
+                   f"BATCH_SIZE={self.BATCH_SIZE}"
         with open(os.path.join(self.OUTPUT_DIR, "expr_config.txt"), "w+") as f:
             f.write(conf_str)
             f.close()
