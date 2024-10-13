@@ -1,4 +1,3 @@
-from sklearn.metrics.pairwise import cosine_similarity
 import torch
 from torch.utils.data import DataLoader
 from sklearn.decomposition import PCA
@@ -13,6 +12,7 @@ def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_sa
     Args:
         model (torch.nn.Module): Trained model used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
+        config (Config): model's configuration
         strategy (str): Strategy for selecting samples ('_uncertainty_sampling', '_entropy_sampling', '_random_sampling').
         num_samples (int): Number of samples to select.
 
@@ -127,14 +127,7 @@ def _core_set_sampling(model, unlabeled_data, num_samples, config):
             for i in range(images.size(0)):
                 image = images[i].unsqueeze(0)  # Create a batch of size 1
                 _ = model(image)
-
-                # Assume the feature extractor is up to the penultimate layer
-                # Modify this line based on your model's architecture
-                if hasattr(model, 'fc'):
-                    features_batch = model.fc.weight.data.cpu().numpy()
-                else:
-                    # For models like VGG, modify accordingly
-                    features_batch = model.classifier[-1][1].weight.data.cpu().numpy()
+                features_batch = model.classifier[-1][1].weight.data.cpu().numpy()
                 features.append(features_batch)
             all_indices.extend([batch_idx * unlabeled_data.batch_size + j for j in range(images.size(0))])
             all_labels.extend(labels.numpy())

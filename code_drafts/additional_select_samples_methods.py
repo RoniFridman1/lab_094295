@@ -41,7 +41,7 @@ def _bald_sampling(model, unlabeled_data, num_samples, mc_iterations=10):
     Selects samples based on Bayesian Active Learning by Disagreement (BALD).
 
     Args:
-        model (torch.nn.Module): Trained model used to select samples.
+        model (torch.nn.Module): Trained vgg16 used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
         mc_iterations (int): Number of Monte Carlo iterations for _uncertainty_sampling estimation.
@@ -99,7 +99,7 @@ def _margin_sampling(model, unlabeled_data, num_samples):
     Selects samples based on Margin Sampling strategy.
 
     Args:
-        model (torch.nn.Module): Trained model used to select samples.
+        model (torch.nn.Module): Trained vgg16 used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
 
@@ -144,7 +144,7 @@ def _dpp_sampling(model, unlabeled_data, num_samples, similarity_threshold=0.5):
     Selects samples based on Determinantal Point Processes (DPP) for diversity.
 
     Args:
-        model (torch.nn.Module): Trained model used to extract features.
+        model (torch.nn.Module): Trained vgg16 used to extract features.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
         similarity_threshold (float): Threshold for cosine similarity to ensure diversity.

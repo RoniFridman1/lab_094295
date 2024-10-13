@@ -37,11 +37,11 @@ plt.title("K-Means Clustering on PCA-Reduced Data (3D)")
 plt.show()
 
 
-# Create a K-Means clustering model
+# Create a K-Means clustering vgg16
 n_clusters = 2  # sick \ healthy
 kmeans = KMeans(n_clusters=n_clusters, random_state=cnfg.seed)
 
-# Fit the model to the PCA-reduced data
+# Fit the vgg16 to the PCA-reduced data
 cluster_labels = kmeans.fit_predict(pca_result)
 
 # Create a 3D figure and axis

@@ -12,7 +12,7 @@ class Config:
         self.DATA_DIR = "chest_xray"
         self.SAMPLING_METHODS = ["core_set"]
         self.ACTIVE_LEARNING_ITERATIONS = 10
-        self.MODEL_TRAINING_EPOCHS = 3
+        self.MODEL_TRAINING_EPOCHS = 1
         self.SAMPLES_PER_ITERATION = 100
         self.TOTAL_TRAINING_SAMPLES = 2000
         self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
