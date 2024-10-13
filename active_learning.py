@@ -17,7 +17,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
         test_generator (DataLoader): DataLoader for test data.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         method (str): Strategy for sample selection (e.g. 'uncertainty', 'entropy', 'random').
-        config (Config): Experiment configuration.
+        config (Config.py): Experiment configuration.
         output_dir (str): a directory path where to store the evaluation metrics.
 
     Returns:
@@ -37,11 +37,11 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
             break
         # Train the vgg16 on current labeled data
         iter_model = iter_model.train(train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
-                                 learning_rate=config.leaning_rate)
+                                      learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
-        selected_samples, selected_labels = select_samples(iter_model, unlabeled_data, config=config, strategy=method,
-                                                           num_samples=config.SAMPLES_PER_ITERATION)
+        selected_samples, selected_labels = select_samples(iter_model.vgg16, unlabeled_data, config=config,
+                                                           strategy=method, num_samples=config.SAMPLES_PER_ITERATION)
 
         # Retrieve selected images and labels from the unlabeled dataloader
         train_generator.dataset.indices = train_generator.dataset.indices + [unlabeled_data.dataset.indices[i]

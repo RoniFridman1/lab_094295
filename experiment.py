@@ -24,11 +24,14 @@ def run_experiment():
 
         for method in config.SAMPLING_METHODS:
             train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
-                config.DATA_DIR, batch_size=config.BATCH_SIZE, labeled_unlabeled_split=config.TRAIN_LABELED_UNLABELED_RATIO,
-                total_train_samples=config.TOTAL_TRAINING_SAMPLES, total_test_samples=config.TOTAL_TEST_SAMPLES,
+                config.DATA_DIR,
+                batch_size=config.BATCH_SIZE,
+                labeled_unlabeled_split=config.TRAIN_LABELED_UNLABELED_RATIO,
+                total_train_samples=config.TOTAL_TRAINING_SAMPLES,
+                total_test_samples=config.TOTAL_TEST_SAMPLES,
                 seed=config.seed)
 
-            CURR_OUTPUT_DIR = os.path.join(config.OUTPUT_DIR,f"{model_name}_{method}")
+            CURR_OUTPUT_DIR = os.path.join(config.OUTPUT_DIR, f"{model_name}_{method}")
             print(f"Running experiment with {model_name} and {method} sampling...")
 
             # Initialize results storage for this vgg16 and method

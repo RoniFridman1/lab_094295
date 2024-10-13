@@ -12,8 +12,8 @@ def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_sa
     Args:
         model (torch.nn.Module): Trained model used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
-        config (Config): model's configuration
-        strategy (str): Strategy for selecting samples ('_uncertainty_sampling', '_entropy_sampling', '_random_sampling').
+        config (Config.py): model's configuration
+        strategy (str): Strategy for selecting samples (uncertainty, entropy, random etc).
         num_samples (int): Number of samples to select.
 
     Returns:
@@ -107,7 +107,7 @@ def _core_set_sampling(model, unlabeled_data, num_samples, config):
         model (torch.nn.Module): Trained model used to extract features.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
-        config (Config): the experiment's configuration.
+        config (Config.py): the experiment's configuration.
 
     Returns:
         selected_samples (list): Indices of selected samples.

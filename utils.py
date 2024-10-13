@@ -123,6 +123,7 @@ def visualize_results(results, output_dir):
 
     Args:
         results (dict): Dictionary containing results for all models and sampling methods.
+        output_dir: path for the directory where to save the results and visualizations.
     """
     for model_name, sampling_results in results.items():
         for sampling_method, metrics in sampling_results.items():

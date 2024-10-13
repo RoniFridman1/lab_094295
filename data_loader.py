@@ -40,9 +40,12 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
     val_dataset = datasets.ImageFolder(val_dir, transform=transform)
     test_dataset = datasets.ImageFolder(test_dir, transform=transform)
 
-    train_dataset = torch.utils.data.Subset(train_dataset, np.random.choice(len(train_dataset), total_train_samples, replace=False))
-    train_dataset_labeled, train_dataset_unlabeled = torch.utils.data.random_split(train_dataset, labeled_unlabeled_split)
-    test_dataset = torch.utils.data.Subset(test_dataset, np.random.choice(len(test_dataset), total_test_samples, replace=False))
+    train_dataset = torch.utils.data.Subset(
+        train_dataset, np.random.choice(len(train_dataset), total_train_samples, replace=False))
+    train_dataset_labeled, train_dataset_unlabeled = torch.utils.data.random_split(
+        train_dataset, labeled_unlabeled_split)
+    test_dataset = torch.utils.data.Subset(
+        test_dataset, np.random.choice(len(test_dataset), total_test_samples, replace=False))
 
     train_loader_labeled = DataLoader(train_dataset_labeled, batch_size=batch_size, shuffle=True)
     train_loader_unlabeled = DataLoader(train_dataset_unlabeled, batch_size=batch_size, shuffle=True)

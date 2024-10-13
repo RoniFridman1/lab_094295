@@ -124,7 +124,7 @@ class ActiveLearningVgg16:
             # Validation step
             self._evaluate(train_loader, val_loader)
 
-        return self.vgg16
+        return self
 
     def calculate_metrics(self, data_loader, output_dir='output', iteration=None, print_metrics=False):
         """
