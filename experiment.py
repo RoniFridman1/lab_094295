@@ -1,7 +1,7 @@
 import os
 import torch
 from data_loader import load_data
-from model import initialize_model
+from model import ActiveLearningVgg16
 from active_learning import active_learning_loop
 from utils import visualize_results
 from Config import Config
@@ -20,7 +20,7 @@ def run_experiment():
     for model_name in config.MODELS:
         config.update_model_name(model_name)
         results[model_name] = {}
-        model = initialize_model(model_name)
+        model = ActiveLearningVgg16()
 
         for method in config.SAMPLING_METHODS:
             train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
@@ -31,7 +31,7 @@ def run_experiment():
             CURR_OUTPUT_DIR = os.path.join(config.OUTPUT_DIR,f"{model_name}_{method}")
             print(f"Running experiment with {model_name} and {method} sampling...")
 
-            # Initialize results storage for this model and method
+            # Initialize results storage for this vgg16 and method
             results[model_name][method] = {'accuracy': [], 'precision': [], 'recall': [], 'f1_score': [], 'roc_auc': []}
 
             # Initialize and run Active Learning
@@ -41,7 +41,7 @@ def run_experiment():
                 config=config,
                 output_dir=CURR_OUTPUT_DIR)
 
-            # Evaluate model after each iteration and store results
+            # Evaluate vgg16 after each iteration and store results
             for met in metrics:
                 for key in results[model_name][method]:
                     results[model_name][method][key].append(met[key])
