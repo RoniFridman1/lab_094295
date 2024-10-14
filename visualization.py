@@ -1,6 +1,7 @@
 import os.path
 import matplotlib.pyplot as plt
 import pandas as pd
+from Config import Config
 
 
 def _plot_learning_curves(metrics_history, model_name, sampling_method, output_dir):
@@ -52,7 +53,42 @@ def _plot_roc_curves(roc_auc_scores, model_name, sampling_method, output_dir):
     plt.close()
 
 
-def _create_summary_table(results, output_dir):
+def _plot_summary_table(df, output_path='output/summary'):
+    # Ensure the save_location directory exists
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    # Metrics to plot (excluding non-numeric columns)
+    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
+
+    # Iterate over each metric to generate one graph per metric
+    for metric in metrics:
+        plt.figure(figsize=(10, 6))
+
+        # Plot each combination of Model and Sampling Method
+        for (model, sampling_method), group in df.groupby(['Model', 'Sampling Method']):
+            plt.plot(group['Active Learning Round'].to_numpy(),
+                     group[metric].to_numpy(),
+                     label=f'{model} - {sampling_method}')
+
+        # Add labels, title, and legend
+        plt.xlabel('Active Learning Round')
+        plt.ylabel(metric)
+        plt.title(f'{metric} Across Models and Sampling Methods')
+        plt.legend(loc='best')
+
+        # Save the plot as a PNG file
+        filename = f"{metric}.png"
+        filepath = os.path.join(output_path, filename)
+        plt.savefig(filepath)
+
+        # Close the plot to avoid overlapping figures in loops
+        plt.close()
+
+    print(f"Plots saved at {output_path}")
+
+
+def create_summary_table(results, output_dir):
     """
     Creates a summary table comparing models and sampling methods.
 
@@ -84,52 +120,27 @@ def _create_summary_table(results, output_dir):
     return df
 
 
-def _plot_summary_table(df, output_path='output/summary'):
-    # Ensure the save_location directory exists
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-
-    # Metrics to plot (excluding non-numeric columns)
-    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
-
-    # Iterate over each metric to generate one graph per metric
-    for metric in metrics:
-        plt.figure(figsize=(10, 6))
-
-        # Plot each combination of Model and Sampling Method
-        for (model, sampling_method), group in df.groupby(['Model', 'Sampling Method']):
-            plt.plot(group['Active Learning Round'], group[metric], label=f'{model} - {sampling_method}')
-
-        # Add labels, title, and legend
-        plt.xlabel('Active Learning Round')
-        plt.ylabel(metric)
-        plt.title(f'{metric} Across Models and Sampling Methods')
-        plt.legend(loc='best')
-
-        # Save the plot as a PNG file
-        filename = f"{metric}.png"
-        filepath = os.path.join(output_path, filename)
-        plt.savefig(filepath)
-
-        # Close the plot to avoid overlapping figures in loops
-        plt.close()
-
-    print(f"Plots saved at {output_path}")
-
-
-def visualize_results(results, output_dir):
+def visualize_results(summary_table, output_dir):
     """
     Visualizes the results using various plots and tables.
 
     Args:
-        results (dict): Dictionary containing results for all models and sampling methods.
+        summary_table (pandas.DataFrame): Dictionary containing results for all models and sampling methods.
         output_dir: path for the directory where to save the results and visualizations.
     """
-    for model_name, sampling_results in results.items():
-        for sampling_method, metrics in sampling_results.items():
-            _plot_learning_curves(metrics, model_name, sampling_method, output_dir)
-            _plot_roc_curves(metrics['roc_auc'], model_name, sampling_method, output_dir)
+    summary_table_gb = summary_table.groupby(['Model', 'Sampling Method']).agg(
+        {'Accuracy': list, 'F1-Score': list, 'ROC-AUC': list}).reset_index()
 
-    summary_table = _create_summary_table(results, output_dir)
+    for _, row in summary_table_gb.iterrows():
+        model_name = row["Model"]
+        sampling_method = row["Sampling Method"]
+        metrics = {"accuracy": row["Accuracy"], "f1_score": row["F1-Score"], "roc_auc": row["ROC-AUC"]}
+        _plot_learning_curves(metrics, model_name, sampling_method, output_dir)
+        _plot_roc_curves(metrics['roc_auc'], model_name, sampling_method, output_dir)
     _plot_summary_table(summary_table, os.path.join(output_dir, "summary"))
-    return summary_table
+
+
+if __name__ == "__main__":
+    df = pd.read_csv("summary_table.csv")
+    config = Config()
+    visualize_results(df, config.OUTPUT_DIR)

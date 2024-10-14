@@ -3,7 +3,7 @@ import torch
 from data_loader import load_data
 from model import ActiveLearningVgg16
 from active_learning import active_learning_loop
-from utils import visualize_results
+from visualization import create_summary_table, visualize_results
 from Config import Config
 
 
@@ -50,6 +50,7 @@ def run_experiment():
                     results[model_name][method][key].append(met[key])
 
     # Visualize results
-    summary_table = visualize_results(results, output_dir=config.OUTPUT_DIR)
+    summary_df = create_summary_table(results, output_dir=config.OUTPUT_DIR)
+    summary_table = visualize_results(summary_df, output_dir=config.OUTPUT_DIR)
     config.write_config_to_file()
     return summary_table
