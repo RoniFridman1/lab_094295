@@ -51,6 +51,5 @@ def run_experiment():
 
     # Visualize results
     summary_df = create_summary_table(results, output_dir=config.OUTPUT_DIR)
-    summary_table = visualize_results(summary_df, output_dir=config.OUTPUT_DIR)
+    visualize_results(summary_df, output_dir=config.OUTPUT_DIR)
     config.write_config_to_file()
-    return summary_table
