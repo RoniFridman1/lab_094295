@@ -11,12 +11,12 @@ class Config:
         self.MODELS = ["vgg16"]
         self.DATA_DIR = "chest_xray"
         self.SAMPLING_METHODS = ["random"]
-        self.ACTIVE_LEARNING_ITERATIONS = 5
+        self.ACTIVE_LEARNING_ITERATIONS = 2
         self.MODEL_TRAINING_EPOCHS = 1
         self.SAMPLES_PER_ITERATION = 10
-        self.TOTAL_TRAINING_SAMPLES = 200
+        self.TOTAL_TRAINING_SAMPLES = 21  # max 5216
         self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
-        self.TOTAL_TEST_SAMPLES = 250
+        self.TOTAL_TEST_SAMPLES = 624  # max 624
         self.BATCH_SIZE = 25
         self.PCA_N_COMPONENTS = 3
         # in order for the code to work with core_set you must assert that:

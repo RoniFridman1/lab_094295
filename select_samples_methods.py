@@ -26,8 +26,8 @@ def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_sa
         return _entropy_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'random':
         return _random_sampling(model, unlabeled_data, num_samples, seed=config.seed)
-    elif strategy == 'core_set':
-        return _core_set_sampling(model, unlabeled_data, num_samples, config)
+    elif strategy == 'pca_then_kmeans':
+        return _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config)
     else:
         raise ValueError(f"Strategy {strategy} not recognized.")
 
@@ -99,9 +99,16 @@ def _random_sampling(model, unlabeled_data, num_samples, seed=42):
     return selected_samples.tolist(), selected_labels
 
 
-def _core_set_sampling(model, unlabeled_data, num_samples, config):
+def _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config):
     """
-    Selects samples based on Core-Set selection strategy using k-means clustering.
+    Selects samples based on the following strategy:
+    1. Extract for each sample the weights of the last layer of VGG16 before the clustering itself (a vector of weights
+       for each sample).
+    2. Perform PCA to the samples' weights' vectors and lower the dimension to a relatively low number (eg. 3 or 10).
+    3. perform K-Means and split the unlabeled samples to K=num_samples clusters.
+    4. Select one image from every cluster to label.
+    The underlying assumption that different clusters contain images from with different characteristics, and it will be
+    valuable to select images with diverse characteristics fro the training.
 
     Args:
         model (torch.nn.Module): Trained model used to extract features.
