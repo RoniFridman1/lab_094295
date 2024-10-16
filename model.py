@@ -41,7 +41,7 @@ class ActiveLearningVgg16:
             torch.save(model.state_dict(), model_path)
 
         else:
-            print(f"Loading vgg16 vgg16 from {model_path}...")
+            print(f"Loading vgg16 from {model_path}...")
             model = models.vgg16()
             model.load_state_dict(torch.load(model_path))
 
