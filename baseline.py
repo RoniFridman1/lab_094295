@@ -23,7 +23,7 @@ for j in range(config.ACTIVE_LEARNING_ITERATIONS):
     print(f"Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}.")
 
     # Train the vgg16
-    model = model.train(train_loader_labeled, val_loader, epochs=config.MODEL_TRAINING_EPOCHS)
+    model = model.train(train_loader_labeled, val_loader, epochs=config.MODEL_TRAINING_EPOCHS, learning_rate=config.leaning_rate)
 
     # Evaluate the vgg16
     metrics.append(model.calculate_metrics(test_loader, iteration=j, output_dir=baseline_output_dir))
