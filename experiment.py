@@ -1,7 +1,7 @@
 import os
 import torch
 from data_loader import load_data
-from model import ActiveLearningVgg16
+from model import ActiveLearningVgg16, ActiveLearningResnet18
 from active_learning import active_learning_loop
 from visualization import create_summary_table, visualize_results
 from Config import Config
@@ -20,7 +20,7 @@ def run_experiment():
     for model_name in config.MODELS:
         config.update_model_name(model_name)  # Configures learning rate as well
         results[model_name] = {}
-        model = ActiveLearningVgg16() if model_name == "vgg16" else None  # TODO: Add the ResNet18 class
+        model = ActiveLearningVgg16() if model_name == "vgg16" else ActiveLearningResnet18()
 
         for method in config.SAMPLING_METHODS:
             train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(

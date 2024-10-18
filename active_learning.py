@@ -32,15 +32,15 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
             f"Active Learning Iteration {j + 1}/{config.ACTIVE_LEARNING_ITERATIONS}."
             f"\tTrain Samples: {train_samples}"
             f"\tUnlabeled: {unlabeled_samples}")
-        iter_model = copy.deepcopy(model)  # We want to start the vgg16 from scratch for every iteration.
+        iter_model = copy.deepcopy(model)  # We want to start the model from scratch for every iteration.
         if len(unlabeled_data) <= 0:
             break
         # Train the vgg16 on current labeled data
-        iter_model = iter_model.train(train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
+        iter_model = iter_model.train_model(train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
                                       learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
-        selected_samples, selected_labels = select_samples(iter_model.vgg16, unlabeled_data, config=config,
+        selected_samples, selected_labels = select_samples(iter_model, unlabeled_data, config=config,
                                                            strategy=method, num_samples=config.SAMPLES_PER_ITERATION)
 
         # Retrieve selected images and labels from the unlabeled dataloader

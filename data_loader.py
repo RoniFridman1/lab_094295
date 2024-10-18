@@ -24,6 +24,7 @@ def load_data(data_dir: str, total_train_samples, batch_size, labeled_unlabeled_
         and test sets.
     """
     torch.manual_seed(seed)
+    np.random.seed(seed)
 
     transform = transforms.Compose([
         transforms.Resize((312, 312)),
