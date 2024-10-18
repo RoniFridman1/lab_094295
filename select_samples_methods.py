@@ -157,6 +157,7 @@ def _pca_then_kmeans_sampling(iter_model, unlabeled_data, num_samples, config):
     kmeans.fit(reduced_features)
     cluster_labels = kmeans.labels_
 
+    # Compute silhouette scores for each cluster and choose top clusters to sample from.
     cluster_scores = silhouette_samples(reduced_features, cluster_labels)
     avg_cluster_scores = [np.mean(cluster_scores[cluster_labels == i]) for i in range(config.K_CLUSTERS)]
     top_clusters = np.argsort(avg_cluster_scores)[-num_samples:]
