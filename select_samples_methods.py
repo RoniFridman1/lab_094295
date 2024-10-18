@@ -3,9 +3,10 @@ from torch.utils.data import DataLoader
 from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples
+from visualization import _plot_clusters_3d
 
-
-def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_samples=10):
+def select_samples(iter_model, unlabeled_data, config, strategy='uncertainty', num_samples=10):
     """
     Selects the most informative samples based on the chosen strategy.
 
@@ -20,6 +21,7 @@ def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_sa
         selected_samples (list): Indices of selected samples.
         selected_labels (list): Corresponding labels of the selected samples.
     """
+    model = iter_model.model
     if strategy == 'uncertainty':
         return _uncertainty_sampling(model, unlabeled_data, num_samples)
     elif strategy == 'entropy':
@@ -27,7 +29,7 @@ def select_samples(model, unlabeled_data, config, strategy='uncertainty', num_sa
     elif strategy == 'random':
         return _random_sampling(model, unlabeled_data, num_samples, seed=config.seed)
     elif strategy == 'pca_then_kmeans':
-        return _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config)
+        return _pca_then_kmeans_sampling(iter_model, unlabeled_data, num_samples, config=config)
     else:
         raise ValueError(f"Strategy {strategy} not recognized.")
 
@@ -99,7 +101,7 @@ def _random_sampling(model, unlabeled_data, num_samples, seed=42):
     return selected_samples.tolist(), selected_labels
 
 
-def _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config):
+def _pca_then_kmeans_sampling(iter_model, unlabeled_data, num_samples, config):
     """
     Selects samples based on the following strategy:
     1. Extract for each sample the weights of the last layer of VGG16 before the clustering itself (a vector of weights
@@ -111,7 +113,7 @@ def _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config):
     valuable to select images with diverse characteristics fro the training.
 
     Args:
-        model (torch.nn.Module): Trained model used to extract features.
+        iter_model (torch.nn.Module): Trained model used to extract features.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         num_samples (int): Number of samples to select.
         config (Config.py): the experiment's configuration.
@@ -120,6 +122,7 @@ def _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config):
         selected_samples (list): Indices of selected samples.
         selected_labels (list): Corresponding labels of the selected samples.
     """
+    model = iter_model.model
     model.eval()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -128,13 +131,15 @@ def _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config):
     all_indices = []
     all_labels = []
     with torch.no_grad():
+        feature_extractor = torch.nn.Sequential(*list(model.children())[:-1])
+
         for batch_idx, (images, labels) in enumerate(unlabeled_data):
             images = images.to(device)
             # Process one image at a time
             for i in range(images.size(0)):
                 image = images[i].unsqueeze(0)  # Create a batch of size 1
-                _ = model(image)
-                features_batch = model.classifier[-1][1].weight.data.cpu().numpy()
+                # Last layer is sequential of Dropout->Linear. So we take the weights of its second internal layer.
+                features_batch = feature_extractor(image).reshape(-1).cpu().numpy()
                 features.append(features_batch)
             all_indices.extend([batch_idx * unlabeled_data.batch_size + j for j in range(images.size(0))])
             all_labels.extend(labels.numpy())
@@ -144,12 +149,23 @@ def _pca_then_kmeans_sampling(model, unlabeled_data, num_samples, config):
     # Apply PCA for dimensionality reduction
     pca = PCA(n_components=config.PCA_N_COMPONENTS)
     reduced_features = pca.fit_transform(features)
+    explained_deviance = pca.explained_variance_ratio_
+    print(f"Total explain variance ratio: {round(sum(explained_deviance)*100,2)}")
 
-    # Perform k-means clustering
-    kmeans = KMeans(n_clusters=num_samples, random_state=42)
+    # Perform k-means clustering, and choose best clusters using silhouette scores
+    kmeans = KMeans(n_clusters=config.K_CLUSTERS, random_state=config.seed)
     kmeans.fit(reduced_features)
-    cluster_centers = kmeans.cluster_centers_
+    cluster_labels = kmeans.labels_
 
+    cluster_scores = silhouette_samples(reduced_features, cluster_labels)
+    avg_cluster_scores = [np.mean(cluster_scores[cluster_labels == i]) for i in range(config.K_CLUSTERS)]
+    top_clusters = np.argsort(avg_cluster_scores)[-num_samples:]
+
+    # Filter cluster centers based on top clusters
+    cluster_centers = [kmeans.cluster_centers_[i] for i in top_clusters]
+
+    if config.PCA_N_COMPONENTS == 3: # Plot if PCA is 3 dimensions
+        _plot_clusters_3d(reduced_features, cluster_labels, top_clusters)
     # Select one sample per cluster
     selected_samples = []
     for center in cluster_centers:

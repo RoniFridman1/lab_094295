@@ -8,19 +8,20 @@ class Config:
         self.start_time = datetime.now()
         self.model_name = None
         self.leaning_rate = 1e-6
-        self.MODELS = ["vgg16"]
+        # self.MODELS = ["vgg16"]
+        self.MODELS = ["resnet18"]
         self.DATA_DIR = "chest_xray"
         self.SAMPLING_METHODS = ["pca_then_kmeans","random"]
-        self.ACTIVE_LEARNING_ITERATIONS = 8
+        self.ACTIVE_LEARNING_ITERATIONS = 5
         self.MODEL_TRAINING_EPOCHS = 3
         self.SAMPLES_PER_ITERATION = 25
         self.TOTAL_TRAINING_SAMPLES = 1000  # Max is 5216
         self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
         self.TOTAL_TEST_SAMPLES = 624  # Max is 624
         self.TOTAL_VAL_SAMPLES = 100 # Min is 16
-        self.BATCH_SIZE = 2
-        self.PCA_N_COMPONENTS = 3
-        self.K_CLUSTERS = 25
+        self.BATCH_SIZE = 25
+        self.PCA_N_COMPONENTS = 100  # Original features are 512 for resnet18 and 4096 for vgg16.
+        self.K_CLUSTERS = 50
 
         n_unlabeled_samples_last_iteration = self.TOTAL_TRAINING_SAMPLES * self.TRAIN_LABELED_UNLABELED_RATIO[1] - \
                                              (self.ACTIVE_LEARNING_ITERATIONS - 1) * self.SAMPLES_PER_ITERATION
