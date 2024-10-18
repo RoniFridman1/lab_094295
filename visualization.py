@@ -2,7 +2,7 @@ import os.path
 import matplotlib.pyplot as plt
 import pandas as pd
 from Config import Config
-
+import numpy as np
 
 def _plot_learning_curves(metrics_history, model_name, sampling_method, output_dir):
     """
@@ -139,6 +139,39 @@ def visualize_results(summary_table, output_dir):
         _plot_roc_curves(metrics['roc_auc'], model_name, sampling_method, output_dir)
     _plot_summary_table(summary_table, os.path.join(output_dir, "summary"))
 
+
+def _plot_clusters_3d(reduced_features, cluster_labels, selected_clusters):
+    """
+    Plots the clusters in 3D, assigning distinct colors to the selected clusters and the same color to non-selected ones.
+
+    Args:
+        reduced_features (np.ndarray): The PCA-reduced features of the samples.
+        cluster_labels (np.ndarray): Cluster labels from KMeans or other clustering methods.
+        selected_clusters (list): List of selected cluster indices.
+    """
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.add_subplot(111, projection='3d')
+
+    unique_clusters = np.unique(cluster_labels)
+
+    # Loop through each cluster
+    for cluster in unique_clusters:
+        cluster_points = reduced_features[cluster_labels == cluster]
+
+        # Check if the cluster is in the selected_clusters list
+        if cluster in selected_clusters:
+            ax.scatter(cluster_points[:, 0], cluster_points[:, 1], cluster_points[:, 2], label=f"Cluster {cluster}",
+                       s=50)
+        else:
+            ax.scatter(cluster_points[:, 0], cluster_points[:, 1], cluster_points[:, 2], color='gray', alpha=0.5, s=20)
+
+    ax.set_title('Clusters in 3D')
+    ax.set_xlabel('PCA 1')
+    ax.set_ylabel('PCA 2')
+    ax.set_zlabel('PCA 3')
+    ax.legend()
+
+    plt.show()
 
 if __name__ == "__main__":
     df = pd.read_csv("summary_table.csv")
