@@ -19,6 +19,7 @@ class Config:
         self.TOTAL_TEST_SAMPLES = 624  # max 624
         self.BATCH_SIZE = 25
         self.PCA_N_COMPONENTS = 3
+        self.leaning_rate = 1e-6
         # in order for the code to work with core_set you must assert that:
         # TOTAL_TRAINING_SAMPLES * TRAIN_LABELED_UNLABELED_RATIO[0] > SAMPLES_PER_ITERATION
 
