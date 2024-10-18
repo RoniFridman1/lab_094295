@@ -15,6 +15,7 @@ train_loader_labeled, _, val_loader, test_loader = load_data(
     labeled_unlabeled_split=config.TRAIN_LABELED_UNLABELED_RATIO,  # should be like (0.99, 0.01)
     total_train_samples=config.TOTAL_TRAINING_SAMPLES,
     total_test_samples=config.TOTAL_TEST_SAMPLES,
+    total_val_samples=config.TOTAL_VAL_SAMPLES,
     seed=config.seed)
 
 metrics = []

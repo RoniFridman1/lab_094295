@@ -6,36 +6,6 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 
-def _pca_kmeans_sampling(unlabeled_train_data, num_samples, seed, pca_n_components=100):
-    unlabeled_data = []
-    indices = []
-    all_labels = []
-    for i, (images, labels) in enumerate(unlabeled_train_data):
-        # Store the labels for later use
-        unlabeled_data.extend(images.numpy())
-        all_labels.extend(labels.numpy())
-        indices.extend([i * unlabeled_train_data.batch_size + j for j in range(len(images))])
-
-    unlabeled_data = np.array(unlabeled_data)
-    pca = PCA(n_components=pca_n_components)
-    pca_result = pca.fit_transform(unlabeled_data.reshape(len(unlabeled_data), -1))
-    explained_varience = pca.explained_variance_ratio_
-    print(f"Sum of explained variance in percent = {round(sum(explained_varience)*100,2)}")
-    n_clusters = 2  # sick \ healthy
-    kmeans = KMeans(n_clusters=n_clusters, random_state=seed)
-    centroids = kmeans.cluster_centers_
-
-    # Calculate distances from each data point to the centroids
-    distances = np.zeros((len(pca_result), n_clusters))
-    for i, point in enumerate(pca_result):
-        for j, centroid in enumerate(centroids):
-            distances[i, j] = np.linalg.norm(point - centroid)
-    ratios = distances[:, 0] / distances[:, 1]
-    selected_samples = np.argsort(np.abs(ratios - 1))[:num_samples]
-    selected_labels = [all_labels[idx] for idx in selected_samples]
-    return selected_samples.tolist(), selected_labels
-
-
 def _bald_sampling(model, unlabeled_data, num_samples, mc_iterations=10):
     """
     Selects samples based on Bayesian Active Learning by Disagreement (BALD).
