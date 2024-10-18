@@ -18,9 +18,9 @@ def run_experiment():
     config = Config()
     torch.manual_seed(config.seed)
     for model_name in config.MODELS:
-        config.update_model_name(model_name)
+        config.update_model_name(model_name)  # Configures learning rate as well
         results[model_name] = {}
-        model = ActiveLearningVgg16()
+        model = ActiveLearningVgg16() if model_name == "vgg16" else None  # TODO: Add the ResNet18 class
 
         for method in config.SAMPLING_METHODS:
             train_loader_labeled, train_loader_unlabeled, val_loader, test_loader = load_data(
@@ -29,6 +29,7 @@ def run_experiment():
                 labeled_unlabeled_split=config.TRAIN_LABELED_UNLABELED_RATIO,
                 total_train_samples=config.TOTAL_TRAINING_SAMPLES,
                 total_test_samples=config.TOTAL_TEST_SAMPLES,
+                total_val_samples=config.TOTAL_VAL_SAMPLES,
                 seed=config.seed)
 
             CURR_OUTPUT_DIR = os.path.join(config.OUTPUT_DIR, f"{model_name}_{method}")
