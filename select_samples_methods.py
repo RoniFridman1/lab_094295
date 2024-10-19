@@ -6,12 +6,13 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples
 from visualization import _plot_clusters_3d
 
+
 def select_samples(iter_model, unlabeled_data, config, strategy='uncertainty', num_samples=10):
     """
     Selects the most informative samples based on the chosen strategy.
 
     Args:
-        model (torch.nn.Module): Trained model used to select samples.
+        iter_model (torch.nn.Module): Trained model used to select samples.
         unlabeled_data (DataLoader): DataLoader for the unlabeled data pool.
         config (Config.py): model's configuration
         strategy (str): Strategy for selecting samples (uncertainty, entropy, random etc).
@@ -104,8 +105,8 @@ def _random_sampling(model, unlabeled_data, num_samples, seed=42):
 def _pca_then_kmeans_sampling(iter_model, unlabeled_data, num_samples, config):
     """
     Selects samples based on the following strategy:
-    1. Extract for each sample the weights of the last layer of VGG16 before the clustering itself (a vector of weights
-       for each sample).
+    1. Extract for each sample the weights of the last layer of the model before the clustering itself (a vector of
+       weights for each sample).
     2. Perform PCA to the samples' weights' vectors and lower the dimension to a relatively low number (eg. 3 or 10).
     3. perform K-Means and split the unlabeled samples to K=num_samples clusters.
     4. Select one image from every cluster to label.
@@ -165,7 +166,7 @@ def _pca_then_kmeans_sampling(iter_model, unlabeled_data, num_samples, config):
     # Filter cluster centers based on top clusters
     cluster_centers = [kmeans.cluster_centers_[i] for i in top_clusters]
 
-    if config.PCA_N_COMPONENTS == 3: # Plot if PCA is 3 dimensions
+    if config.PCA_N_COMPONENTS == 3:  # Plot if PCA is 3 dimensions
         _plot_clusters_3d(reduced_features, cluster_labels, top_clusters)
     # Select one sample per cluster
     selected_samples = []
