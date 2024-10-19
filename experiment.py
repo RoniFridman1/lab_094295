@@ -35,7 +35,7 @@ def run_experiment():
             CURR_OUTPUT_DIR = os.path.join(config.OUTPUT_DIR, f"{model_name}_{method}")
             print(f"Running experiment with {model_name} and {method} sampling...")
 
-            # Initialize results storage for this vgg16 and method
+            # Initialize results storage for this model and method
             results[model_name][method] = {'accuracy': [], 'precision': [], 'recall': [], 'f1_score': [], 'roc_auc': []}
 
             # Initialize and run Active Learning
@@ -45,7 +45,7 @@ def run_experiment():
                 config=config,
                 output_dir=CURR_OUTPUT_DIR)
 
-            # Evaluate vgg16 after each iteration and store results
+            # Evaluate model after each iteration and store results
             for met in metrics:
                 for key in results[model_name][method]:
                     results[model_name][method][key].append(met[key])
