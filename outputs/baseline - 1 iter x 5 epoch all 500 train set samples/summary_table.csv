@@ -1,2 +1,0 @@
-,Model,Sampling Method,Active Learning Round,Accuracy,Precision,Recall,F1-Score,ROC-AUC
-0,vgg16,baseline,0,0.625,0.625,1.0,0.7692307692307693,0.949474030243261
