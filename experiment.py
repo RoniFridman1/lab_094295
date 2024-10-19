@@ -18,7 +18,6 @@ def run_experiment():
     config = Config()
     torch.manual_seed(config.seed)
     for model_name in config.MODELS:
-        config.update_model_name(model_name)  # Configures learning rate as well
         results[model_name] = {}
         model = ActiveLearningVgg16() if model_name == "vgg16" else ActiveLearningResnet18()
 
