@@ -36,7 +36,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
         if len(unlabeled_data) <= 0:
             break
         # Train the vgg16 on current labeled data
-        iter_model = iter_model.train_model(train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
+        iter_model = iter_model.train(train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
                                       learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
