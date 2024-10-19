@@ -20,7 +20,7 @@ class Config:
         self.TOTAL_VAL_SAMPLES = 16  # Min is 16
         self.BATCH_SIZE = 25
         self.PCA_N_COMPONENTS = 100  # Original features are 512 for resnet18 and 4096 for vgg16.
-        self.K_CLUSTERS = 50
+        self.K_CLUSTERS = self.SAMPLES_PER_ITERATION
 
         n_unlabeled_samples_last_iteration = self.TOTAL_TRAINING_SAMPLES * self.TRAIN_LABELED_UNLABELED_RATIO[1] - \
             (self.ACTIVE_LEARNING_ITERATIONS - 1) * self.SAMPLES_PER_ITERATION
