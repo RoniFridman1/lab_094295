@@ -1,0 +1,5 @@
+iteration 1: 0.2617
+iteration 2: 0.0568
+iteration 3: 0.0350
+iteration 4: 0.0226
+iteration 5: 0.0107
