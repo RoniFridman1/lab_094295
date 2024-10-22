@@ -19,7 +19,6 @@ class ActiveLearningVgg16:
             nn.Linear(num_features, 1))  # Update the last layer in classifier for binary classification
         self.model = vgg16
 
-
     def _load_or_download_vgg16(self, model_dir: str = "models"):
         """
         Downloads a pre-trained vgg16 model if not already present in the 'models' directory.
@@ -35,9 +34,9 @@ class ActiveLearningVgg16:
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
 
-        # Check if the vgg16 already exists
+        # Check if the model already exists
         if not os.path.exists(model_path):
-            print(f"Downloading vgg16 vgg16...")
+            print(f"Downloading vgg16 model...")
             model = models.vgg16(pretrained=True)
             torch.save(model.state_dict(), model_path)
 
@@ -97,7 +96,7 @@ class ActiveLearningVgg16:
             learning_rate (float): Learning rate for optimizer.
 
         Returns:
-            vgg16 (torch.nn.Module): Trained vgg16.
+            self (torch.nn.Module): Trained model.
         """
 
         criterion = nn.BCEWithLogitsLoss()
@@ -129,10 +128,9 @@ class ActiveLearningVgg16:
 
     def calculate_metrics(self, data_loader, output_dir='output', iteration=None, print_metrics=False):
         """
-        Evaluates the vgg16 on a given dataset with additional metrics and saves results to files.
+        Evaluates the model on a given dataset with additional metrics and saves results to files.
 
         Args:
-            model (torch.nn.Module): The vgg16 to evaluate.
             data_loader (DataLoader): DataLoader for the dataset.
             output_dir (str): Directory to save output files.
             iteration (int, optional): Iteration number for saving files with unique names.
@@ -200,6 +198,7 @@ class ActiveLearningVgg16:
         plt.close()  # Close the plot to avoid display overlap in loops
 
         return metrics
+
 
 class ActiveLearningResnet18:
     def __init__(self):
@@ -324,7 +323,6 @@ class ActiveLearningResnet18:
         Evaluates the resnet18 on a given dataset with additional metrics and saves results to files.
 
         Args:
-            model (torch.nn.Module): The vgg16 to evaluate.
             data_loader (DataLoader): DataLoader for the dataset.
             output_dir (str): Directory to save output files.
             iteration (int, optional): Iteration number for saving files with unique names.
@@ -366,7 +364,7 @@ class ActiveLearningResnet18:
         conf_matrix = confusion_matrix(all_labels, all_preds)
 
         if print_metrics:
-            print(f"Test Accuracy: {accuracy:.2f}%")
+            print(f"Test Accuracy: {accuracy:.2f}")
             print(f"Precision: {precision:.2f}")
             print(f"Recall: {recall:.2f}")
             print(f"F1-Score: {f1:.2f}")

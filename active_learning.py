@@ -1,6 +1,5 @@
 import copy
 import time
-from Config import Config
 from torch.utils.data import DataLoader
 from select_samples_methods import select_samples
 
@@ -37,7 +36,7 @@ def active_learning_loop(model, train_generator, val_generator, test_generator,
             break
         # Train the vgg16 on current labeled data
         iter_model = iter_model.train_model(train_generator, val_generator, epochs=config.MODEL_TRAINING_EPOCHS,
-                                      learning_rate=config.leaning_rate)
+                                            learning_rate=config.leaning_rate)
 
         # Select new samples to be labeled
         selected_samples, selected_labels = select_samples(iter_model, unlabeled_data, config=config,

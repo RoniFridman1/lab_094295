@@ -8,26 +8,24 @@ class Config:
         self.start_time = datetime.now()
         self.model_name = None
         self.leaning_rate = 1e-6
-        self.MODELS = ["vgg16"]
-        # self.MODELS = ["resnet18"]
+        self.MODELS = ["resnet18"]
         self.DATA_DIR = "chest_xray"
-        self.SAMPLING_METHODS = ["pca_then_kmeans","random"]
-        self.ACTIVE_LEARNING_ITERATIONS = 5
+        self.SAMPLING_METHODS = ["pca_then_kmeans", "random", "uncertainty", "entropy"]
+        self.ACTIVE_LEARNING_ITERATIONS = 10
         self.MODEL_TRAINING_EPOCHS = 3
-        self.SAMPLES_PER_ITERATION = 25
-        self.TOTAL_TRAINING_SAMPLES = 1000  # Max is 5216
-        self.TRAIN_LABELED_UNLABELED_RATIO = (0.1, 0.9)
+        self.SAMPLES_PER_ITERATION = 90
+        self.TOTAL_TRAINING_SAMPLES = 5216  # Max is 5216
+        self.TRAIN_LABELED_UNLABELED_RATIO = (0.019, 0.981)
         self.TOTAL_TEST_SAMPLES = 624  # Max is 624
-        self.TOTAL_VAL_SAMPLES = 100 # Min is 16
+        self.TOTAL_VAL_SAMPLES = 16  # Min is 16
         self.BATCH_SIZE = 25
         self.PCA_N_COMPONENTS = 100  # Original features are 512 for resnet18 and 4096 for vgg16.
-        self.K_CLUSTERS = 50
+        self.K_CLUSTERS = self.SAMPLES_PER_ITERATION
 
         n_unlabeled_samples_last_iteration = self.TOTAL_TRAINING_SAMPLES * self.TRAIN_LABELED_UNLABELED_RATIO[1] - \
                                              (self.ACTIVE_LEARNING_ITERATIONS - 1) * self.SAMPLES_PER_ITERATION
 
-
-        ## Checking configuration is valid for any method.
+        # Checking configuration is valid for any method.
         err1 = f"Not enough unlabeled samples in the last selection iteration (n={n_unlabeled_samples_last_iteration})" + \
                f"to choose from (sample per iteration={self.SAMPLES_PER_ITERATION})"
         err2 = f"Error in total number of training samples. Maximum available is 5216. You chose {self.TOTAL_TRAINING_SAMPLES}."
@@ -36,7 +34,7 @@ class Config:
         assert (self.TOTAL_TRAINING_SAMPLES <= 5216), err2
         assert (self.TOTAL_TEST_SAMPLES <= 624), err3
 
-        ## Checking that configuration is valid for "PCA then Kmeans" method.
+        # Checking that configuration is valid for "PCA then Kmeans" method.
         if "pca_then_kmeans" in self.SAMPLING_METHODS:
             prefix = "'PCA then KMeans' sampling method: "
             err1 = prefix + f"Make sure that the number of \nlabeled training " + \
