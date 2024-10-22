@@ -4,6 +4,7 @@ import pandas as pd
 from Config import Config
 import numpy as np
 
+
 def _plot_learning_curves(metrics_history, model_name, sampling_method, output_dir):
     """
     Plots learning curves for a given model and sampling method.
@@ -142,7 +143,8 @@ def visualize_results(summary_table, output_dir):
 
 def _plot_clusters_3d(reduced_features, cluster_labels, selected_clusters):
     """
-    Plots the clusters in 3D, assigning distinct colors to the selected clusters and the same color to non-selected ones.
+    Plots the clusters in 3D, assigning distinct colors to the selected clusters and the same color to non-selected
+    ones.
 
     Args:
         reduced_features (np.ndarray): The PCA-reduced features of the samples.
@@ -172,6 +174,7 @@ def _plot_clusters_3d(reduced_features, cluster_labels, selected_clusters):
     ax.legend()
 
     plt.show()
+
 
 if __name__ == "__main__":
     df = pd.read_csv("summary_table.csv")

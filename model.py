@@ -364,7 +364,7 @@ class ActiveLearningResnet18:
         conf_matrix = confusion_matrix(all_labels, all_preds)
 
         if print_metrics:
-            print(f"Test Accuracy: {accuracy:.2f}%")
+            print(f"Test Accuracy: {accuracy:.2f}")
             print(f"Precision: {precision:.2f}")
             print(f"Recall: {recall:.2f}")
             print(f"F1-Score: {f1:.2f}")
