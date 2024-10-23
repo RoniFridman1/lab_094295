@@ -1,0 +1,2 @@
+,Model,Sampling Method,Active Learning Round,Accuracy,Precision,Recall,F1-Score,ROC-AUC
+0,resnet18,baseline,0,0.8365384615384616,0.7975206611570248,0.9897435897435898,0.8832951945080092,0.9259149682226605
