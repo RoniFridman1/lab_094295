@@ -1,6 +1,11 @@
-<h4 style="text-align: center;"> Data Analysis and Presentation Lab (094295) </h4>
-<h2 style="text-align: center;"> Final Project: Enhancing X-Ray Imaging Analysis with Active Learning </h2>
-<div style="text-align: center;"> Nimrod Solomon, Matan Shiloni, Roni Fridman </div>
+<h3 align='center' style="text-align:center; font-weight:bold; font-size:2.5em">Data Analysis and Presentation Lab (094295)</h3>
+<h1 align='center' style="text-align:center; font-weight:bold; font-size:2.5em">Final Project: Enhancing X-Ray Imaging Analysis with Active Learning</h1>
+
+<p align='center' style="text-align:center;font-size:1em;">
+    <a>Nimrod Solomon</a>&nbsp;,&nbsp;
+    <a>Matan Shiloni</a>&nbsp;,&nbsp;
+    <a>Roni Fridman</a>&nbsp;
+</p>
 
 ### Abstract
 X-Rays, one of the most used imaging modalities, play a crucial role in diagnosing various medical conditions. 
