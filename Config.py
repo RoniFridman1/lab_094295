@@ -34,7 +34,7 @@ class Config:
         assert (self.TOTAL_TRAINING_SAMPLES <= 5216), err2
         assert (self.TOTAL_TEST_SAMPLES <= 624), err3
 
-        # Checking that configuration is valid for "PCA then K-Means" method.
+        # Checking that configuration is valid for "PCA then Kmeans" method.
         if "pca_then_kmeans" in self.SAMPLING_METHODS:
             prefix = "'PCA then KMeans' sampling method: "
             err1 = prefix + f"Make sure that the number of \nlabeled training " + \
