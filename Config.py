@@ -7,7 +7,7 @@ class Config:
         self.seed = 42
         self.start_time = datetime.now()
         self.model_name = None
-        self.leaning_rate = 1e-6
+        self.learning_rate = 1e-6
         self.MODELS = ["resnet18"]
         self.DATA_DIR = "chest_xray"
         self.SAMPLING_METHODS = ["pca_then_kmeans", "random", "uncertainty", "entropy"]
@@ -62,16 +62,16 @@ class Config:
     def update_model_name(self, model_name):
         self.model_name = model_name
         if model_name == 'resnet18':
-            self.leaning_rate = 1e-5
+            self.learning_rate = 1e-5
         if model_name == 'vgg16':
-            self.leaning_rate = 1e-6
+            self.learning_rate = 1e-6
 
     def write_config_to_file(self):
         conf_str = (
             f"Start time={self.start_time}\n"
             f"Seed={self.seed}\n"
             f"Model Name={self.model_name}\n"
-            f"Learning rate={self.leaning_rate}\n"
+            f"Learning rate={self.learning_rate}\n"
             f"MODELS={self.MODELS}\n"
             f"DATA_DIR={self.DATA_DIR}\n"
             f"SAMPLING_METHODS={self.SAMPLING_METHODS}\n"

@@ -85,7 +85,7 @@ class ActiveLearningVgg16:
         print(f"Train Accuracy: {accuracy_train:.2f}%")
         print(f"Val Accuracy: {accuracy_val:.2f}%")
 
-    def train_model(self, train_loader, val_loader, epochs=10, learning_rate=1e-4):
+    def train(self, train_loader, val_loader, epochs=10, learning_rate=1e-4):
         """
         Trains the vgg16 model on the provided data loaders.
 
@@ -277,7 +277,7 @@ class ActiveLearningResnet18:
         print(f"Train Accuracy: {accuracy_train:.2f}%")
         print(f"Val Accuracy: {accuracy_val:.2f}%")
 
-    def train_model(self, train_loader, val_loader, epochs=10, learning_rate=1e-4):
+    def train(self, train_loader, val_loader, epochs=10, learning_rate=1e-4):
         """
         Trains the resnet18 model on the provided data loaders.
 
