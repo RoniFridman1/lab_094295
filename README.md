@@ -19,3 +19,50 @@ Our work demonstrates that Active Learning can achieve comparable accuracy to mo
 with significantly fewer labeled samples. This project showcases the feasibility of implementing Active Learning in 
 pediatric radiology and highlights opportunities for future research.
 
+### Setup Instructions
+
+#### 1. Clone the repository:
+```shell
+git clone https://github.com/RoniFridman1/lab_094295.git
+```
+
+#### 2. Install dependencies:
+```shell
+pip install copy torch time os datetime torchvision numpy warnings json sklearn matplotlib pandas
+```
+
+#### 3. Adjust Config.py parameters to desired values:
+```python
+        self.seed = 42
+        self.start_time = datetime.now()
+        self.model_name = None
+        self.learning_rate = 1e-6
+        self.MODELS = ["resnet18"]
+        self.DATA_DIR = "chest_xray"
+        self.SAMPLING_METHODS = ["pca_then_kmeans", "random", "uncertainty", "entropy"]
+        self.ACTIVE_LEARNING_ITERATIONS = 10
+        self.MODEL_TRAINING_EPOCHS = 3
+        self.SAMPLES_PER_ITERATION = 90
+        self.TOTAL_TRAINING_SAMPLES = 5216  # Max is 5216
+        self.TRAIN_LABELED_UNLABELED_RATIO = (0.019, 0.981)
+        self.TOTAL_TEST_SAMPLES = 624  # Max is 624
+        self.TOTAL_VAL_SAMPLES = 16  # Min is 16
+        self.BATCH_SIZE = 25
+        self.PCA_N_COMPONENTS = 100  # Original features are 512 for resnet18 and 4096 for vgg16.
+        self.K_CLUSTERS = self.SAMPLES_PER_ITERATION
+```
+
+#### 4. Run Experiment:
+To run an active learning experiment:
+```shell
+python3 run main.py
+```
+
+To run a baseline experiment:
+```shell
+python3 baseline.py
+```
+
+
+
+
